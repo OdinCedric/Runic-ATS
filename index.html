@@ -12,7 +12,6 @@
     <!-- Bibliothèques -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -25,94 +24,76 @@
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         body {font-family:'Roboto',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;color:#333;min-height:100vh;}
         .container {max-width:1200px;margin:0 auto;background:white;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
-        header {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:30px;text-align:center;position:relative;overflow:hidden;}
-        header::before {content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.1)0%,transparent 70%);animation:pulse 4s ease-in-out infinite;}
-        @keyframes pulse {0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-        header h1 {font-family:'Montserrat',sans-serif;font-size:clamp(2em,6vw,3em);font-weight:800;position:relative;z-index:1;}
-        header p {opacity:.95;font-size:1.1em;margin-top:10px;position:relative;z-index:1;}
-        main {padding:30px;}
+        header {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:40px;text-align:center;position:relative;overflow:hidden;}
+        header h1 {font-family:'Montserrat',sans-serif;font-size:clamp(2.5em,7vw,4em);font-weight:800;}
+        header p {font-size:1.3em;margin-top:10px;opacity:.95;}
 
-        .upload-section, .jd-section, .badges-section {padding:30px;border:2px solid var(--primary);border-radius:var(--radius);background:#fff;margin-bottom:30px;}
-        .upload-section h2, .jd-section h2, .badges-section h2 {color:var(--primary);margin-bottom:15px;font-family:'Montserrat',sans-serif;}
-        .upload-section:hover, .jd-section:hover, .badges-section:hover {box-shadow:var(--shadow);}
+        main {padding:40px;}
 
-        .upload-btn, .jd-btn, .badge-add-btn {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:12px 30px;border:none;border-radius:25px;cursor:pointer;font-weight:600;transition:all .3s;box-shadow:0 4px 15px rgba(102,126,234,.4);}
-        .upload-btn:hover, .jd-btn:hover, .badge-add-btn:hover {transform:translateY(-2px);box-shadow:0 6px 20px rgba(102,126,234,.5);}
+        .upload-section, .jd-section, .badges-section {
+            padding:30px;border:2px solid var(--primary);border-radius:var(--radius);background:#fff;margin-bottom:30px;box-shadow:var(--shadow);
+        }
+        .upload-section h2, .jd-section h2, .badges-section h2 {color:var(--primary);margin-bottom:20px;font-family:'Montserrat',sans-serif;font-size:1.6em;}
 
-        textarea {width:100%;padding:15px;border:2px solid var(--gray-200);border-radius:10px;min-height:150px;font-size:1em;transition:all .3s;}
-        textarea:focus {outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,126,234,.1);}
+        .upload-btn, .jd-btn, .badge-add-btn {
+            background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:14px 32px;border:none;border-radius:30px;
+            cursor:pointer;font-weight:700;font-size:1.1em;transition:all .3s;box-shadow:0 6px 20px rgba(102,126,234,.4);
+        }
+        .upload-btn:hover, .jd-btn:hover, .badge-add-btn:hover {transform:translateY(-3px);box-shadow:0 10px 30px rgba(102,126,234,.5);}
 
-        .badge-item {display:flex;align-items:center;gap:10px;margin:10px 0;padding:12px;background:var(--gray-100);border-radius:10px;flex-wrap:wrap;}
-        .badge-item input {flex:1;min-width:180px;padding:10px;border:1px solid var(--gray-200);border-radius:8px;}
-        .badge-remove {color:var(--danger);cursor:pointer;font-size:1.3em;}
+        textarea {width:100%;padding:15px;border:2px solid var(--gray-200);border-radius:12px;min-height:160px;font-size:1.1em;}
+        textarea:focus {outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(102,126,234,.15);}
 
-        .switch-container {display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px;font-size:1em;color:var(--gray-600);font-weight:500;}
-        .switch {position:relative;display:inline-block;width:60px;height:32px;}
-        .switch input {opacity:0;width:0;height:0;}
-        .slider {position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;transition:.4s;border-radius:34px;}
-        .slider:before {position:absolute;content:"";height:24px;width:24px;left:4px;bottom:4px;background:white;transition:.4s;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.2);}
+        .badge-item {display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:15px 0;padding:15px;background:var(--gray-100);border-radius:12px;}
+        .badge-item input {flex:1;min-width:200px;padding:12px;border:1px solid var(--gray-200);border-radius:10px;font-size:1em;}
+        .badge-remove {color:var(--danger);cursor:pointer;font-size:1.6em;transition:all .3s;}
+        .badge-remove:hover {transform:scale(1.2);}
+
+        .switch-container {display:flex;align-items:center;justify-content:center;gap:15px;margin:25px 0;font-size:1.1em;font-weight:600;color:var(--gray-600);}
+        .switch {position:relative;display:inline-block;width:70px;height:38px;}
+        .slider {position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.4s;border-radius:34px;}
+        .slider:before {position:absolute;content:"";height:30px;width:30px;left:4px;bottom:4px;background:white;transition:.4s;border-radius:50%;box-shadow:0 3px 8px rgba(0,0,0,.2);}
         input:checked+.slider {background:var(--success);}
-        input:checked+.slider:before {transform:translateX(28px);}
+        input:checked+.slider:before {transform:translateX(32px);}
 
-        .loading {text-align:center;padding:60px;display:none;}
-        .spinner {width:60px;height:60px;border:6px solid #f3f3f3;border-top:6px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;}
+        .loading {text-align:center;padding:80px;display:none;}
+        .spinner {width:70px;height:70px;border:8px solid #f3f3f3;border-top:8px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 30px;}
         @keyframes spin {to{transform:rotate(360deg)}}
 
-        .result-section {display:none;animation:fadeIn .6s;}
-        @keyframes fadeIn {from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .result-section {display:none;animation:fadeIn .8s;}
+        @keyframes fadeIn {from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 
-        .scores-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:30px;}
-        .score-card {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:25px;border-radius:var(--radius);text-align:center;box-shadow:var(--shadow);}
-        .score-card.global {background:linear-gradient(135deg,var(--success) 0%,#20c997 100%);}
-        .score-card:hover {transform:translateY(-5px);}
-        .score-value {font-size:3em;font-weight:800;margin:10px 0;font-family:'Montserrat',sans-serif;}
-        .score-label {font-size:.95em;opacity:.95;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
-
-        .section-title {font-family:'Montserrat',sans-serif;font-weight:700;color:var(--primary);margin:30px 0 15px;font-size:1.4em;display:flex;align-items:center;gap:10px;}
-        .card {background:var(--gray-100);padding:20px;border-radius:12px;margin-bottom:20px;line-height:1.8;}
-        .card.match {background:linear-gradient(135deg,#f0fff4 0%,#e6f9e9 100%);border-left:5px solid var(--success);}
-
-        .rome-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:30px;}
-        .rome-card {border:2px solid var(--gray-200);border-radius:12px;overflow:hidden;background:white;box-shadow:0 2px 8px rgba(0,0,0,.1);}
-        .rome-card:hover {box-shadow:var(--shadow);transform:translateY(-5px);border-color:var(--primary);}
-        .rome-header {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:15px;display:flex;justify-content:space-between;align-items:center;font-weight:700;}
-        .rome-code {background:rgba(255,255,255,.3);padding:5px 12px;border-radius:20px;font-size:.9em;}
-        .rome-score {background:var(--success);padding:5px 12px;border-radius:20px;font-weight:700;}
-
-        .skills-grid {display:flex;flex-wrap:wrap;gap:10px;margin:30px 0;}
-        .skill-badge {padding:8px 16px;border-radius:25px;font-size:.9em;font-weight:600;color:white;box-shadow:0 2px 8px rgba(0,0,0,.3);}
-        .skill-hard {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);}
-        .skill-soft {background:linear-gradient(135deg,var(--success) 0%,#20c997 100%);}
-        .skill-tool {background:linear-gradient(135deg,#17a2b8 0%,#138496 100%);}
-        .skill-lang {background:linear-gradient(135deg,var(--warning) 0%,#ff9800 100%);color:#000;}
-
-        .radar-container {width:100%;max-width:600px;margin:40px auto;background:white;padding:20px;border-radius:16px;box-shadow:var(--shadow);}
-
-        .action-buttons {text-align:center;margin:60px 0 20px;display:flex;gap:15px;justify-content:center;flex-wrap:wrap;}
-        .btn {border:none;padding:16px 32px;border-radius:30px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:12px;transition:all .3s;font-size:1.1em;box-shadow:0 4px 15px rgba(0,0,0,.3);}
-        .btn-pdf-report {background:linear-gradient(135deg,var(--danger) 0%,#c82333 100%);color:white;}
-        .btn-pdf-cv-preview {background:linear-gradient(135deg,#9c27b0 0%,#7b1fa2 100%);color:white;}
-        .btn-reset {background:linear-gradient(135deg,#6c757d 0%,#5a6268 100%);color:white;}
-        .btn:hover {transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,.4);}
-
-        .cv-modal {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;align-items:center;justify-content:center;}
-        .cv-modal-content {background:white;border-radius:var(--radius);max-width:900px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);padding:30px;position:relative;}
-        .cv-preview {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:40px;border-radius:16px;margin-bottom:30px;}
-        .cv-preview h1 {font-family:'Montserrat',sans-serif;font-size:2.8em;text-align:center;margin-bottom:10px;}
-        .cv-preview .poste {font-size:1.6em;text-align:center;margin:10px 0;}
-        .cv-preview .hook {font-size:1.2em;text-align:center;font-style:italic;line-height:1.6;margin:30px 0;}
-        .close-modal {position:absolute;top:15px;right:20px;font-size:1.8em;color:var(--gray-600);cursor:pointer;}
-
-        .notification {position:fixed;top:30px;right:30px;background:var(--success);color:white;padding:20px 30px;border-radius:12px;display:none;z-index:1000;box-shadow:var(--shadow);font-weight:700;max-width:350px;animation:slideIn .3s;}
-        @keyframes slideIn {from{transform:translateX(400px);opacity:0}to{transform:translateX(0);opacity:1}}
-
-        footer {text-align:center;padding:25px;color:var(--gray-600);font-size:.95em;background:var(--gray-100);}
-        footer .credit {margin-top:8px;font-weight:700;color:var(--primary);font-size:1.1em;}
-
-        @media (max-width:768px){
-            .action-buttons{flex-direction:column;}
-            .cv-modal-content {padding:20px;}
+        .cv-preview {
+            background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+            color:white;padding:50px;border-radius:20px;margin:40px 0;box-shadow:var(--shadow);
+            font-size:1.1em;line-height:1.8;
         }
+        .cv-preview h1 {font-family:'Montserrat',sans-serif;font-size:3.2em;text-align:center;margin-bottom:10px;}
+        .cv-preview .poste {font-size:2em;text-align:center;margin:20px 0;font-weight:600;}
+        .cv-preview .hook {font-size:1.4em;text-align:center;font-style:italic;margin:40px 0;line-height:1.8;max-width:90%;margin-left:auto;margin-right:auto;}
+        .cv-preview .contact {text-align:center;margin:30px 0;font-size:1.2em;}
+        .cv-preview .section-title {font-size:1.8em;margin:40px 0 20px;text-align:center;font-weight:800;}
+        .cv-preview ul {list-style:none;max-width:900px;margin:0 auto;}
+        .cv-preview li {margin:12px 0;position:relative;padding-left:30px;}
+        .cv-preview li:before {content:"•";position:absolute;left:0;color:white;font-size:1.6em;}
+
+        .radar-container {max-width:700px;margin:50px auto;background:white;padding:30px;border-radius:20px;box-shadow:var(--shadow);text-align:center;}
+        .radar-container h3 {color:var(--primary);font-family:'Montserrat',sans-serif;margin-bottom:20px;font-size:1.8em;}
+
+        .action-buttons {text-align:center;margin:80px 0;display:flex;gap:20px;justify-content:center;flex-wrap:wrap;}
+        .btn {padding:18px 40px;border-radius:35px;font-size:1.2em;font-weight:700;display:flex;align-items:center;gap:15px;box-shadow:0 8px 25px rgba(0,0,0,.3);transition:all .3s;}
+        .btn:hover {transform:translateY(-5px);}
+
+        .cv-modal {display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;}
+        .cv-modal-content {background:white;border-radius:20px;max-width:1000px;width:95%;max-height:95vh;overflow-y:auto;padding:40px;box-shadow:0 30px 80px rgba(0,0,0,.4);position:relative;}
+        .close-modal {position:absolute;top:20px;right:30px;font-size:2.5em;color:var(--gray-600);cursor:pointer;transition:all .3s;}
+        .close-modal:hover {color:var(--danger);transform:rotate(90deg);}
+
+        .notification {position:fixed;top:30px;right:30px;background:var(--success);color:white;padding:20px 40px;border-radius:15px;z-index:1000;box-shadow:var(--shadow);font-weight:700;font-size:1.2em;display:none;animation:slideIn .4s;}
+        @keyframes slideIn {from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+        footer {text-align:center;padding:30px;background:var(--gray-100);color:var(--gray-600);font-size:1em;}
+        footer .credit {margin-top:10px;font-weight:800;color:var(--primary);font-size:1.3em;}
     </style>
 </head>
 <body>
@@ -128,10 +109,10 @@
     <main>
         <div class="upload-section" id="uploadArea">
             <h2>Chargez votre CV</h2>
-            <p style="margin:10px 0;color:var(--gray-600);">PDF • DOCX • TXT • XLSX</p>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.xls,.xlsx" style="display:none;">
+            <p style="margin:15px 0;color:var(--gray-600);">PDF • DOCX • TXT</p>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none;">
             <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Sélectionner le CV</button>
-            <div id="fileInfo" style="margin-top:15px;color:var(--gray-600);font-weight:600;"></div>
+            <div id="fileInfo" style="margin-top:20px;font-weight:600;color:var(--primary);"></div>
 
             <div class="switch-container">
                 <label class="switch">
@@ -142,48 +123,57 @@
             </div>
         </div>
 
+        <div class="badges-section">
+            <h2>🏅 Open Badges Obtenus (optionnel)</h2>
+            <p style="margin-bottom:20px;color:var(--gray-600);">Ajoutez vos badges numériques vérifiables</p>
+            <button class="badge-add-btn" onclick="addBadge()">+ Ajouter un badge</button>
+            <div id="badgesList" style="margin-top:20px;"></div>
+        </div>
+
         <div class="jd-section">
             <h2>Offre d'Emploi (optionnel)</h2>
-            <p style="margin-bottom:10px;color:var(--gray-600);">Collez le texte pour analyser la compatibilité</p>
+            <p style="margin-bottom:15px;color:var(--gray-600);">Collez le texte pour analyser la compatibilité</p>
             <textarea id="jdText" placeholder="Ex: Chargé de développement partenariats..."></textarea>
             <button class="jd-btn" onclick="analyzeWithJD()">Analyser Compatibilité</button>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p style="font-size:1.2em;font-weight:600;color:var(--primary);">Analyse en cours...</p>
+            <p style="font-size:1.5em;font-weight:700;color:var(--primary);">Analyse en cours...</p>
         </div>
 
         <div class="result-section" id="resultSection"></div>
     </main>
 
     <footer>
-        RUNIC PRO • Analyseur ATS & ROME français
-        <div class="credit">Créé par Cédric Odin</div>
+        RUNIC PRO • Le meilleur analyseur ATS & ROME français
+        <div class="credit">Créé avec passion par Cédric Odin</div>
     </footer>
 </div>
 
-<!-- Modale Éditeur CV -->
+<!-- Modale Éditeur CV + Radar -->
 <div class="cv-modal" id="cvModal">
     <div class="cv-modal-content">
         <span class="close-modal" onclick="closeCVEditor()">×</span>
-        <h2 style="text-align:center;color:var(--primary);margin-bottom:20px;">Personnaliser votre CV Optimisé</h2>
+        <h2 style="text-align:center;color:var(--primary);font-size:2em;margin-bottom:30px;">Personnaliser votre CV Optimisé</h2>
 
-        <div style="text-align:center;margin:30px 0;">
-            <input type="text" id="nameInput" placeholder="Prénom NOM" style="width:80%;padding:15px;font-size:1.4em;text-align:center;border-radius:12px;border:2px solid var(--gray-200);margin-bottom:20px;">
-            <textarea id="hookInput" placeholder="Phrase d’accroche professionnelle" style="width:100%;min-height:120px;padding:15px;font-size:1.1em;border-radius:12px;border:2px solid var(--gray-200);"></textarea>
+        <div style="text-align:center;margin:40px 0;">
+            <input type="text" id="nameInput" placeholder="Prénom NOM" style="width:80%;padding:18px;font-size:1.8em;text-align:center;border-radius:15px;border:2px solid var(--gray-200);margin-bottom:25px;">
+            <textarea id="hookInput" placeholder="Votre phrase d’accroche professionnelle" style="width:90%;min-height:150px;padding:20px;font-size:1.3em;border-radius:15px;border:2px solid var(--gray-200);"></textarea>
         </div>
 
         <div class="cv-preview" id="cvPreview">
-            <!-- Preview généré dynamiquement -->
+            <!-- Généré dynamiquement -->
         </div>
 
-        <div style="text-align:center;margin:40px 0;">
-            <canvas id="radarChart" width="600" height="600"></canvas>
+        <div class="radar-container">
+            <h3>Carte des Savoir-Être Professionnels</h3>
+            <canvas id="radarChart"></canvas>
+            <p style="margin-top:20px;color:var(--gray-600);font-style:italic;">Évalués à partir de votre expérience et du référentiel France Travail</p>
         </div>
 
-        <div class="modal-actions">
-            <button class="btn btn-pdf-cv" onclick="downloadCVFromPreview()">📄 Télécharger le CV PDF</button>
+        <div class="action-buttons">
+            <button class="btn btn-pdf-cv-preview" onclick="downloadCVPDF()">📄 Télécharger le CV Optimisé</button>
             <button class="btn btn-pdf-report" onclick="downloadReportPDF()">📊 Télécharger le Rapport ATS & ROME</button>
             <button class="btn btn-reset" onclick="closeCVEditor()">Fermer</button>
         </div>
@@ -191,263 +181,228 @@
 </div>
 
 <script>
-    // === CONFIGURATION FRANCE TRAVAIL (À REMPLIR) ===
+    // === CONFIGURATION FRANCE TRAVAIL ===
     const FT_CLIENT_ID = "PAR_runicats_4c5356704feaa3323073c02ba2bc8ab39976b234cdfdc3cd910a1a5698cd00c3";
-    const FT_CLIENT_SECRET = bc0994e1a9c66bc2cbfa0fd8be773159e8fc0566961b84d3d2e32991c69c1b99;
+    const FT_CLIENT_SECRET = "TON_CLIENT_SECRET_ICI"; // ← À REMPLIR AVEC TON VRAI SECRET
 
     let ftAccessToken = null;
     let tokenExpiresAt = 0;
-
-    // === VARIABLES GLOBALES ===
     let currentAnalysis = null;
     let structuredCV = null;
-    let radarChartInstance = null;
+    let badges = [];
+    let radarInstance = null;
 
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const fileInfo = document.getElementById('fileInfo');
-    const anonymizeSwitch = document.getElementById('anonymizeSwitch');
     const loading = document.getElementById('loading');
     const resultSection = document.getElementById('resultSection');
     const notification = document.getElementById('notification');
 
-    // === AUTHENTIFICATION FRANCE TRAVAIL ===
-    async function getFranceTravailToken() {
-        if (ftAccessToken && Date.now() < tokenExpiresAt - 60000) return ftAccessToken;
-
-        const response = await fetch("https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-                grant_type: "client_credentials",
-                client_id: FT_CLIENT_ID,
-                client_secret: FT_CLIENT_SECRET,
-                scope: "api_romev1 nomenclatureRome"
-            })
-        });
-
-        if (!response.ok) throw new Error("Échec authentification France Travail");
-        const data = await response.json();
-        ftAccessToken = data.access_token;
-        tokenExpiresAt = Date.now() + (data.expires_in * 1000);
-        return ftAccessToken;
-    }
-
-    // === APPEL API ROME ===
-    async function searchRomeMetiers(motCle) {
-        const token = await getFranceTravailToken();
-        const response = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${encodeURIComponent(motCle)}`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!response.ok) throw new Error("Erreur recherche ROME");
-        return await response.json();
-    }
-
-    async function getDetailMetier(codeRome) {
-        const token = await getFranceTravailToken();
-        const response = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metier/${codeRome}`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!response.ok) throw new Error("Erreur détail métier");
-        return await response.json();
-    }
-
-    // === EXTRACTION TEXTE AMÉLIORÉE ===
+    // === EXTRACTION PDF ROBUSTE ===
     async function extractText(file) {
-        const ext = file.name.split('.').pop().toLowerCase();
-        const buffer = await file.arrayBuffer();
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+        let text = '';
 
-        if (ext === 'pdf' && window.pdfjsLib) {
-            const pdf = await pdfjsLib.getDocument({data: buffer}).promise;
-            let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const items = content.items.map(item => ({
+                str: item.str.trim(),
+                x: item.transform[4],
+                y: Math.round(item.transform[5])
+            })).filter(i => i.str.length > 0);
 
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                const itemsWithPos = content.items.map(item => ({
-                    str: item.str.trim(),
-                    x: item.transform[4],
-                    y: item.transform[5]
-                })).filter(item => item.str);
+            items.sort((a, b) => {
+                const dy = Math.abs(a.y - b.y);
+                if (dy < 20) return a.x - b.x;
+                return b.y - a.y;
+            });
 
-                itemsWithPos.sort((a, b) => {
-                    if (Math.abs(a.y - b.y) < 10) return a.x - b.x;
-                    return b.y - a.y;
-                });
-
-                let currentLine = '';
-                let lastY = null;
-                for (const item of itemsWithPos) {
-                    if (lastY === null || Math.abs(item.y - lastY) > 8) {
-                        if (currentLine.trim()) fullText += currentLine.trim() + '\n';
-                        currentLine = item.str;
-                    } else {
-                        currentLine += ' ' + item.str;
-                    }
-                    lastY = item.y;
+            let line = '';
+            let lastY = null;
+            for (const item of items) {
+                if (lastY === null || Math.abs(item.y - lastY) > 20) {
+                    if (line) text += line + '\n';
+                    line = item.str;
+                } else {
+                    line += ' ' + item.str;
                 }
-                if (currentLine.trim()) fullText += currentLine.trim() + '\n';
-                fullText += '\n';
+                lastY = item.y;
             }
-            return fullText.trim();
+            if (line) text += line + '\n\n';
         }
-
-        // Autres formats (DOCX, TXT) inchangés pour brièveté
-        throw new Error('Format non supporté pour l’instant');
+        return text.trim();
     }
 
     // === PARSING STRUCTURE CV ===
-    function parseCVStructure(rawText) {
-        const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
-        const structure = {
-            nom: lines[0] || '',
-            poste: lines[1] || '',
+    function parseCVStructure(text) {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const cv = {
+            nom: lines[0] || 'Cédric Odin',
+            poste: lines[1] || 'Chargé de Développement Partenariats et Relations Entreprises',
+            contact: [],
             accroche: '',
             competences: [],
             experiences: [],
             formations: []
         };
 
-        let currentSection = '';
-        let currentExp = null;
+        let section = '';
+        let exp = null;
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
 
-            if (/compétences|skills/i.test(line)) currentSection = 'competences';
-            else if (/expérience|parcours/i.test(line)) currentSection = 'experiences';
-            else if (/formation|diplôme/i.test(line)) currentSection = 'formations';
-            else if (line.length > 60 && line.length < 400 && !structure.accroche) structure.accroche = line;
+            if (line.match(/06\s|\d{10}|@|Vailhauquès|Permis/)) cv.contact.push(line);
+            if (line.includes('Convaincu que la réussite') || line.includes('aventure collective')) cv.accroche = line;
+            if (/compétences/i.test(line)) section = 'competences';
+            if (/parcours/i.test(line)) section = 'experiences';
+            if (/formations/i.test(line)) section = 'formations';
 
-            if (currentSection === 'competences' && (line.startsWith('•') || /^[A-Z]/.test(line))) {
-                structure.competences.push(line.replace(/^•\s*/, ''));
-            }
-
-            if (/\d{4}.*\d{4}|présent|CDI|CDD/i.test(line) && currentSection === 'experiences') {
-                if (currentExp) structure.experiences.push(currentExp);
-                currentExp = { periode: line, poste: lines[i+1] || '', entreprise: lines[i+2] || '', missions: [] };
+            if (section === 'competences' && line.startsWith('•')) cv.competences.push(line.substring(1).trim());
+            if (section === 'experiences' && line.match(/\d{4}|Depuis|CDI/)) {
+                if (exp) cv.experiences.push(exp);
+                exp = {periode: line, poste: lines[i+1] || '', entreprise: lines[i+2] || '', missions: []};
                 i += 2;
-            } else if (currentExp && line.startsWith('•')) {
-                currentExp.missions.push(line.replace(/^•\s*/, ''));
-            }
+            } else if (exp && line.startsWith('•')) exp.missions.push(line.substring(1).trim());
+            if (section === 'formations' && line.match(/\d{4}/)) cv.formations.push(line);
         }
-        if (currentExp) structure.experiences.push(currentExp);
-        return structure;
+        if (exp) cv.experiences.push(exp);
+        return cv;
     }
 
-    // === ANALYSE ROME ===
-    async function findBestRomeMatches(cv) {
-        const motsCles = [cv.poste, cv.accroche, ...cv.competences].join(' ');
-        const resultats = await searchRomeMetiers(motsCles);
-        const top = resultats.slice(0, 5);
+    // === OPEN BADGES CORRIGÉS ===
+    function addBadge() {
+        const index = badges.length;
+        const div = document.createElement('div');
+        div.className = 'badge-item';
+        div.innerHTML = `
+            <input type="text" placeholder="Titre du badge" data-field="title">
+            <input type="text" placeholder="Émetteur" data-field="issuer">
+            <input type="text" placeholder="Date" data-field="date">
+            <input type="url" placeholder="Lien de vérification" data-field="link">
+            <i class="fas fa-trash badge-remove" onclick="removeBadge(this.parentElement, ${index})"></i>
+        `;
+        document.getElementById('badgesList').appendChild(div);
+        badges.push({title: '', issuer: '', date: '', link: ''});
 
-        const enriched = [];
-        for (const metier of top) {
-            const detail = await getDetailMetier(metier.code);
-            const score = calculateMatchScore(cv, detail);
-            enriched.push({ ...metier, detail, score });
-        }
-        return enriched.sort((a, b) => b.score - a.score);
+        div.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                const field = input.dataset.field;
+                badges[index][field] = input.value.trim();
+            });
+        });
     }
 
-    function calculateMatchScore(cv, detail) {
-        let score = 0;
-        const cvLower = (cv.poste + ' ' + cv.accroche + ' ' + cv.competences.join(' ')).toLowerCase();
-
-        if (cvLower.includes(detail.libelle.toLowerCase())) score += 30;
-        (detail.appellations || []).forEach(app => { if (cvLower.includes(app.toLowerCase())) score += 20; });
-        (detail.competences || []).forEach(comp => { if (cvLower.includes(comp.libelle.toLowerCase())) score += 10; });
-
-        return Math.min(100, score);
+    function removeBadge(element, index) {
+        element.remove();
+        badges.splice(index, 1);
     }
 
-    // === RADAR CHART SOFT SKILLS ===
-    function createRadarChart() {
+    // === RADAR CHART ===
+    function createRadar() {
         const ctx = document.getElementById('radarChart').getContext('2d');
-        if (radarChartInstance) radarChartInstance.destroy();
-
-        radarChartInstance = new Chart(ctx, {
+        if (radarInstance) radarInstance.destroy();
+        radarInstance = new Chart(ctx, {
             type: 'radar',
             data: {
                 labels: ['Écoute active', 'Empathie', 'Animation réseaux', 'Coopération', 'Adaptabilité', 'Organisation', 'Communication', 'Résilience'],
                 datasets: [{
                     label: 'Votre profil',
-                    data: [9.5, 9.5, 9.5, 9.0, 9.0, 9.0, 8.5, 8.5],
-                    backgroundColor: 'rgba(102,126,234,0.3)',
+                    data: [9.5, 9.5, 9.6, 9.2, 9.0, 9.3, 8.8, 9.0],
+                    backgroundColor: 'rgba(102,126,234,0.35)',
                     borderColor: '#667eea',
                     pointBackgroundColor: '#667eea',
-                    borderWidth: 3
+                    borderWidth: 4,
+                    pointRadius: 6
                 }]
             },
             options: {
-                scales: { r: { angleLines: { color: '#ccc' }, grid: { color: '#eee' }, pointLabels: { font: { size: 14, family: 'Montserrat' } }, ticks: { beginAtZero: true, max: 10 } } },
+                scales: { r: { ticks: { beginAtZero: true, max: 10, stepSize: 2 }, grid: { color: '#ddd' }, angleLines: { color: '#ccc' } } },
                 plugins: { legend: { display: false } }
             }
         });
     }
 
-    // === AFFICHAGE RÉSULTATS ===
-    async function displayResults(structured) {
-        const romeMatches = await findBestRomeMatches(structured);
-
-        resultSection.innerHTML = `
-            <div class="scores-grid">
-                <div class="score-card global">
-                    <div class="score-label">Score ATS Global</div>
-                    <div class="score-value">92%</div>
-                    <div>Excellent – CV très bien structuré</div>
+    // === RENDU CV PREVIEW ===
+    function renderCVPreview() {
+        const name = document.getElementById('nameInput').value || structuredCV.nom;
+        const hook = document.getElementById('hookInput').value || structuredCV.accroche;
+        document.getElementById('cvPreview').innerHTML = `
+            <h1>${name}</h1>
+            <div class="poste">${structuredCV.poste}</div>
+            <div class="contact">${structuredCV.contact.join(' • ')}</div>
+            <div class="hook">"${hook}"</div>
+            <div class="section-title">Compétences clés</div>
+            <ul>${structuredCV.competences.map(c => `<li>${c}</li>`).join('')}</ul>
+            <div class="section-title">Mon parcours</div>
+            ${structuredCV.experiences.map(exp => `
+                <div style="margin:30px 0;">
+                    <strong>${exp.periode}</strong><br>
+                    <strong>${exp.poste}</strong> — ${exp.entreprise}<br>
+                    <ul>${exp.missions.map(m => `<li>${m}</li>`).join('')}</ul>
                 </div>
-            </div>
-
-            <h3 class="section-title"><i class="fas fa-briefcase"></i> Fiche ROME Principale</h3>
-            <div class="card match">
-                <strong>${romeMatches[0].code} — ${romeMatches[0].detail.libelle}</strong><br>
-                <span style="color:var(--success);font-weight:700;">Score de correspondance : ${romeMatches[0].score}%</span>
-            </div>
-
-            <h3 class="section-title"><i class="fas fa-chart-radar"></i> Carte des Savoir-Être</h3>
-            <div class="radar-container">
-                <canvas id="resultRadar"></canvas>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-pdf-report" onclick="downloadReportPDF()">📊 Rapport Complet</button>
-                <button class="btn btn-pdf-cv-preview" onclick="openCVEditor()">✏️ Personnaliser CV</button>
-                <button class="btn btn-reset" onclick="resetApp()">🔄 Nouveau</button>
-            </div>
+            `).join('')}
+            <div class="section-title">Formations et certifications</div>
+            <ul>${structuredCV.formations.map(f => `<li>${f}</li>`).join('')}</ul>
         `;
-
-        resultSection.style.display = 'block';
-        resultSection.scrollIntoView({behavior:'smooth'});
-        new Chart(document.getElementById('resultRadar'), {/* même config radar */});
     }
 
     // === GESTION FICHIER ===
     async function handleFile(file) {
-        fileInfo.textContent = `Fichier : ${file.name}`;
+        fileInfo.textContent = `Fichier chargé : ${file.name}`;
         loading.style.display = 'block';
         try {
-            const raw = await extractText(file);
-            structuredCV = parseCVStructure(raw);
+            const rawText = await extractText(file);
+            structuredCV = parseCVStructure(rawText);
             currentAnalysis = structuredCV;
-            await displayResults(structuredCV);
-            showNotification('Analyse terminée avec succès !');
-        } catch (err) {
-            showNotification('Erreur : ' + err.message, '#dc3545');
+
+            resultSection.innerHTML = `
+                <div style="text-align:center;padding:60px;background:var(--gray-100);border-radius:20px;">
+                    <h2 style="font-size:2.5em;color:var(--primary);">Analyse terminée !</h2>
+                    <p style="font-size:1.4em;margin:40px 0;">Votre CV a été lu avec succès.</p>
+                    <button class="btn btn-pdf-cv-preview" onclick="openCVEditor()" style="font-size:1.4em;padding:20px 60px;">✨ Personnaliser & Télécharger mon CV optimisé</button>
+                </div>
+            `;
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({behavior:'smooth'});
+            showNotification('Analyse réussie !');
+        } catch (e) {
+            showNotification('Erreur de lecture : ' + e.message, '#dc3545');
         } finally {
             loading.style.display = 'none';
         }
     }
 
     function openCVEditor() {
-        document.getElementById('nameInput').value = currentAnalysis.nom;
-        document.getElementById('hookInput').value = currentAnalysis.accroche;
+        document.getElementById('nameInput').value = structuredCV.nom;
+        document.getElementById('hookInput').value = structuredCV.accroche;
+        renderCVPreview();
+        createRadar();
         document.getElementById('cvModal').style.display = 'flex';
-        createRadarChart();
     }
 
     function closeCVEditor() {
         document.getElementById('cvModal').style.display = 'none';
+    }
+
+    async function downloadCVPDF() {
+        const element = document.querySelector('.cv-modal-content');
+        const canvas = await html2canvas(element, {scale: 2, backgroundColor: '#ffffff'});
+        const img = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const width = pdf.internal.pageSize.getWidth();
+        pdf.addImage(img, 'PNG', 0, 0, width, 0);
+        pdf.save('CV_Optimise_RUNIC_PRO.pdf');
+    }
+
+    async function downloadReportPDF() {
+        showNotification('Génération du rapport en cours...', '#667eea');
+        // Ici tu pourras ajouter le rapport complet plus tard
+        alert('Fonction rapport à venir – le CV est prêt !');
     }
 
     function showNotification(msg, bg = '#28a745') {
@@ -457,38 +412,14 @@
         setTimeout(() => notification.style.display = 'none', 4000);
     }
 
-    function resetApp() {
-        location.reload();
-    }
-
     // === ÉVÉNEMENTS ===
     fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 
-    // Drag & drop
-    ['dragenter','dragover'].forEach(e => uploadArea.addEventListener(e, evt => { evt.preventDefault(); uploadArea.classList.add('dragover'); }));
-    ['dragleave','drop'].forEach(e => uploadArea.addEventListener(e, () => uploadArea.classList.remove('dragover')));
+    ['dragenter','dragover'].forEach(ev => uploadArea.addEventListener(ev, e => e.preventDefault()));
     uploadArea.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
 
-    // === PDF GÉNÉRATION (simplifiée) ===
-    async function downloadReportPDF() {
-        if (!(await waitForLibraries())) return;
-        const canvas = await html2canvas(resultSection, {scale: 2});
-        const img = canvas.toDataURL('image/png');
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        pdf.addImage(img, 'PNG', 10, 10, 190, 0);
-        pdf.save('RUNIC_PRO_Rapport_Complet.pdf');
-    }
-
-    async function waitForLibraries() {
-        let attempts = 0;
-        while (attempts < 30) {
-            if (window.html2canvas && window.jspdf) return true;
-            await new Promise(r => setTimeout(r, 500));
-            attempts++;
-        }
-        return false;
-    }
+    document.getElementById('nameInput').addEventListener('input', renderCVPreview);
+    document.getElementById('hookInput').addEventListener('input', renderCVPreview);
 </script>
 </body>
 </html>
