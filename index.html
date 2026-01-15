@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RUNIC PRO - Analyseur ATS + ROME 4.0</title>
+    <title>RUNIC - Analyseur ATS + ROME 4.0</title>
 
     <!-- Polices & Icônes -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
@@ -121,7 +121,7 @@
 
 <div class="container">
     <header>
-        <h1>RUNIC PRO</h1>
+        <h1>RUNIC </h1>
         <p>Analyseur ATS + ROME 4.0 + CV Anonymisé Optimisé</p>
     </header>
 
@@ -158,7 +158,7 @@
     </main>
 
     <footer>
-        RUNIC PRO • Le meilleur analyseur ATS & ROME français
+        RUNIC  • Analyseur ATS & ROME français
         <div class="credit">Créé par Cédric Odin</div>
     </footer>
 </div>
@@ -193,7 +193,7 @@
 <script>
     // === CONFIGURATION FRANCE TRAVAIL (À REMPLIR) ===
     const FT_CLIENT_ID = "PAR_runicats_4c5356704feaa3323073c02ba2bc8ab39976b234cdfdc3cd910a1a5698cd00c3";
-    const FT_CLIENT_SECRET = "TON_CLIENT_SECRET_ICI"; // ← À REMPLIR OBLIGATOIREMENT
+    const FT_CLIENT_SECRET = "bc0994e1a9c66bc2cbfa0fd8be773159e8fc0566961b84d3d2e32991c69c1b99"; 
 
     let ftAccessToken = null;
     let tokenExpiresAt = 0;
@@ -477,7 +477,7 @@
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(img, 'PNG', 10, 10, 190, 0);
-        pdf.save('RUNIC_PRO_Rapport_Complet.pdf');
+        pdf.save('RUNIC_Rapport_Complet.pdf');
     }
 
     async function waitForLibraries() {
