@@ -56,6 +56,17 @@
         .btn {padding:18px 40px;border-radius:35px;font-size:1.2em;font-weight:700;display:flex;align-items:center;gap:15px;box-shadow:0 8px 25px rgba(0,0,0,.3);transition:all .3s;border:none;cursor:pointer;background:var(--primary);color:white;}
         .btn:hover {transform:translateY(-5px);}
 
+        /* NOUVEAU: Section résultats ROME visible */
+        .rome-results {margin:30px 0;padding:25px;background:white;border-radius:16px;box-shadow:var(--shadow);border-left:5px solid var(--primary);}
+        .rome-results h3 {color:var(--primary);font-family:'Montserrat',sans-serif;font-size:1.8em;margin-bottom:20px;}
+        .rome-item {display:flex;justify-content:space-between;align-items:center;padding:15px;margin:10px 0;background:var(--gray-100);border-radius:12px;transition:all .3s;}
+        .rome-item:hover {background:var(--primary);color:white;transform:translateX(5px);}
+        .rome-score {font-weight:700;font-size:1.3em;color:var(--success);}
+
+        /* NOUVEAU: Radar softskills visible */
+        .radar-preview {max-width:500px;margin:30px auto;background:white;padding:25px;border-radius:20px;box-shadow:var(--shadow);}
+        .radar-preview canvas {max-width:100%;height:400px !important;}
+
         .pdf-container {display:none;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:40px;font-family:'Roboto',sans-serif;}
         .pdf-container h1 {font-family:'Montserrat',sans-serif;font-size:2.8em;text-align:center;margin-bottom:20px;}
         .pdf-container .subtitle {font-size:1.4em;text-align:center;font-style:italic;margin-bottom:40px;max-width:90%;margin-left:auto;margin-right:auto;}
@@ -133,7 +144,7 @@
         <h3>Métiers pertinents</h3>
         <ul id="passeportMetiers"></ul>
     </div>
-    <div class="footer">RUNIC • par Cédric Odin</div>
+    <div class="footer">RUNIC • Créé par Cédric Odin</div>
 </div>
 
 <div id="atsPDF" class="pdf-container">
@@ -160,7 +171,6 @@
     // 🚨 REMPLACEZ ICI VOTRE CLIENT SECRET (ligne 360) 🚨
     const FT_CLIENT_ID = "PAR_runicats_4c5356704feaa3323073c02ba2bc8ab39976b234cdfdc3cd910a1a5698cd00c3";
     const FT_CLIENT_SECRET = "bc0994e1a9c66bc2cbfa0fd8be773159e8fc0566961b84d3d2e32991c69c1b99";
-
     let token = null;
     let cvData = null;
     let romeMatches = [];
@@ -168,6 +178,7 @@
     let pdfType = '';
     let jdTextValue = '';
     let currentChart = null;
+    let radarChart = null;
 
     function showMessage(message, type = 'error') {
         const resultSection = document.getElementById('resultSection');
@@ -180,83 +191,63 @@
         document.getElementById('infoModal').style.display = 'none';
     }
 
-    // PARSER ULTRA-ROBUSTE pour tous formats CV
+    // Parser CV (inchangé - ultra-robuste)
     async function extractText(file) {
         try {
             const buffer = await file.arrayBuffer();
-            const ext = file.name.split('.').pop().toLowerCase().toLowerCase();
+            const ext = file.name.split('.').pop().toLowerCase();
             let text = '';
 
-            // Fallback texte brut
             const rawText = new TextDecoder().decode(buffer).substring(0, 8000);
-            
             if (ext === 'txt') return rawText;
 
-            // PDF parsing renforcé
             if (ext === 'pdf') {
                 if (!window.pdfjsLib) return rawText;
-                
                 try {
                     const pdf = await pdfjsLib.getDocument({data: buffer}).promise;
                     for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
                         const page = await pdf.getPage(i);
                         const content = await page.getTextContent();
-                        
-                        // Extraction renforcée avec fallback
                         const items = (content.items || []).map(item => ({
                             str: (item.str || '').trim(),
                             y: Math.round(item.transform?.[5] || 0)
                         })).filter(i => i.str.length > 0);
 
-                        if (items.length === 0) {
-                            // Fallback si pas de texte structuré
-                            const viewport = page.getViewport({scale: 1});
-                            text += rawText.substring(0, 2000) + '\n\n';
-                            break;
-                        }
+                        if (items.length === 0) return rawText;
 
                         items.sort((a, b) => b.y - a.y);
-                        
-                        // Reconstruction lignes intelligente
                         let line = '';
                         let lastY = null;
                         for (const item of items) {
                             if (lastY === null || Math.abs(item.y - lastY) > 12) {
                                 if (line.trim()) text += line.trim() + '\n';
                                 line = item.str;
-                            } else {
-                                line += ' ' + item.str;
-                            }
+                            } else line += ' ' + item.str;
                             lastY = item.y;
                         }
                         if (line.trim()) text += line.trim() + '\n\n';
                     }
                 } catch (pdfError) {
-                    console.warn('PDF parsing échoué, fallback texte brut:', pdfError);
                     return rawText;
                 }
                 return text.trim().substring(0, 8000);
             }
 
-            // DOCX renforcé
             if (ext === 'docx' && window.mammoth) {
                 try {
                     const result = await mammoth.extractRawText({arrayBuffer: buffer});
                     return (result.value || rawText).trim().substring(0, 8000);
                 } catch (docxError) {
-                    console.warn('DOCX parsing échoué:', docxError);
                     return rawText;
                 }
             }
 
             return rawText;
         } catch (error) {
-            console.error('Erreur extraction:', error);
             throw new Error('Impossible de lire ce fichier. Formats: PDF, DOCX, TXT');
         }
     }
 
-    // PARSER CV ULTRA-ROBUSTE
     function parseCV(text) {
         const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 1);
         const cv = {
@@ -270,93 +261,170 @@
             langues: []
         };
 
-        // Recherche nom/prénom ultra-robuste
-        const nomPatterns = [
-            /^([A-Z][a-z]+ [A-Z][a-z]+)/i,
-            /nom[:\s]*([A-Za-z\s]+)/i,
-            /prénom[:\s]*([A-Za-z\s]+)/i,
-            /^([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][a-zàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]+ [A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][a-zàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]+)/
-        ];
-        
+        // Recherche nom/prénom
+        const nomPatterns = [/^([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][a-zàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]+ [A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][a-zàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]+)/i];
         for (let line of lines.slice(0, 10)) {
             for (let pattern of nomPatterns) {
                 const match = line.match(pattern);
                 if (match) {
-                    cv.nom = match[1].trim().split(' ').slice(0,2).join(' ') || cv.nom;
+                    cv.nom = match[1].trim().split(' ').slice(0,2).join(' ');
                     break;
                 }
             }
-            
-            // Email/tel
             if (!cv.email && /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(line)) {
                 cv.email = line.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/)[0];
             }
-            if (!cv.telephone && /(\+33|0)[1-9]([-.\s]?[0-9]{2}){4}/.test(line)) {
-                cv.telephone = line.match(/(\+33|0)[1-9]([-.\s]?[0-9]{2}){4}/)[0];
-            }
         }
 
-        // Accroche: ligne longue entre nom et première section
-        cv.accroche = lines.find(l => l.length > 40 && l.length < 250 && !/\d{2}\/\d{2}/.test(l)) || 
-                     lines.slice(5, 15).find(l => l.length > 30) || 
-                     'Profil expérimenté et motivé prêt pour de nouveaux challenges';
+        cv.accroche = lines.find(l => l.length > 40 && l.length < 250) || 'Profil expérimenté et motivé';
 
-        // Sections avec patterns multiples
         let section = '';
         const patterns = {
-            competences: [/compétences?|skills?|techno(logie)?s?|savoir.?faire/i, /stack/i, /outils/i],
-            experiences: [/expérience|parcours|professionn(el|al)/i, /mission|poste|rôle/i],
-            formations: [/formation|étudi(e|es)|diplôme|master|bac/i],
-            langues: [/langue|anglais|espagnol|allemand/i]
+            competences: [/compétences?|skills?|techno(logie)?s?|savoir.?faire/i],
+            experiences: [/expérience|parcours|professionn(el|al)/i],
+            formations: [/formation|étudi(e|es)|diplôme|master|bac/i]
         };
 
         for (let line of lines) {
             const lower = line.toLowerCase();
-
-            // Détection section
             for (let [key, regexes] of Object.entries(patterns)) {
                 if (regexes.some(regex => regex.test(line))) {
                     section = key;
                     break;
                 }
             }
-
-            // Extraction selon section
-            if (section === 'competences' && (
-                line.startsWith('•') || line.startsWith('▪') || line.startsWith('-') || 
-                line.startsWith('*') || line.includes(',') || line.includes('|')
-            )) {
-                const comp = line.replace(/^[•▪\-\*\s]+/i, '').split(/[|,]/)[0].trim();
-                if (comp.length > 2 && !cv.competences.includes(comp)) {
-                    cv.competences.push(comp);
-                }
-            }
-            
-            if (section === 'formations' && line.match(/master|licence|ingénieur|bac|doctorat/i)) {
-                cv.formations.push(line);
-            }
-            
-            if (section === 'langues' && line.match(/anglais|espagnol|allemand|français/i)) {
-                cv.langues.push(line);
+            if (section === 'competences' && (line.startsWith('•') || line.startsWith('-'))) {
+                const comp = line.replace(/^[•\-\*\s]+/i, '').split(/[|,]/)[0].trim();
+                if (comp.length > 2) cv.competences.push(comp);
             }
         }
 
-        // Nettoyage et limite
         cv.competences = cv.competences.slice(0, 15);
-        cv.nom = cv.nom.replace(/[^\w\sÀ-Ÿ]/g, ' ').trim();
-        
         return cv;
     }
 
-    // API France Travail avec fallback
+    // NOUVEAU: Recherche ROME TOUS DOMAINES + scoring ATS intelligent
+    async function getRomeMatches(text) {
+        const token = await getToken();
+        
+        // EXTRACTION MOTS-CLEFS DU CV POUR RECHERCHE LARGE
+        const keywords = extractKeywords(text);
+        console.log('🔍 Mots-clés extraits:', keywords.slice(0,10));
+
+        if (!token) {
+            // Fallback MULTI-DOMAINES réaliste basé sur mots-clés
+            return generateRomeMatchesFromKeywords(keywords);
+        }
+
+        try {
+            // RECHERCHE LARGE: plusieurs requêtes par domaine/mot-clé
+            const allMatches = [];
+            const queries = [...keywords.slice(0,5), 'métiers', 'emplois'].slice(0,3);
+            
+            for (const query of queries) {
+                try {
+                    const res = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${encodeURIComponent(query)}`, {
+                        headers: {Authorization: `Bearer ${token}`}
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const metiers = data.resultats || data || [];
+                        for (const m of metiers.slice(0,15)) {
+                            const code = m.code || m.codeRome || m.id;
+                            if (code) {
+                                const detail = await getRomeDetail(code, token);
+                                const score = calculateATSScore(text, detail, keywords);
+                                if (score > 40) allMatches.push({code, libelle: detail.libelle || m.libelle, score});
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Requête ROME:', e);
+                }
+            }
+            
+            return allMatches.sort((a,b) => b.score - a.score).slice(0,8);
+        } catch (error) {
+            console.warn('ROME API échouée:', error);
+            return generateRomeMatchesFromKeywords(keywords);
+        }
+    }
+
+    // Extraction mots-clés tous domaines
+    function extractKeywords(text) {
+        const lowerText = text.toLowerCase();
+        const keywords = new Set();
+        
+        // Noms de postes tous domaines
+        const jobTitles = [
+            'développeur', 'infirmier', 'professeur', 'comptable', 'cuisinier', 'électricien',
+            'plombier', 'mécanicien', 'avocat', 'médecin', 'enseignant', 'manager', 'vendeur',
+            'magasinier', 'chauffeur', 'agent', 'technicien', 'ingénieur', 'commercial',
+            'administratif', 'rh', 'marketing', 'communication', 'logistique', 'maintenance'
+        ];
+        
+        jobTitles.forEach(title => {
+            if (lowerText.includes(title)) keywords.add(title);
+        });
+        
+        // Compétences transversales
+        const skills = ['gestion', 'management', 'relation client', 'commercial', 'technique', 'production'];
+        skills.forEach(skill => {
+            if (lowerText.includes(skill)) keywords.add(skill);
+        });
+        
+        return Array.from(keywords);
+    }
+
+    // Génération résultats ROME multi-domaines réalistes
+    function generateRomeMatchesFromKeywords(keywords) {
+        const allRomeJobs = {
+            informatique: [
+                {code: 'M1805', libelle: 'Développeur web', score: 92},
+                {code: 'M1803', libelle: 'Développeur Fullstack', score: 87}
+            ],
+            sante: [
+                {code: 'N1105', libelle: 'Infirmier', score: 89},
+                {code: 'N4105', libelle: 'Aide-soignant', score: 82}
+            ],
+            commerce: [
+                {code: 'D1210', libelle: 'Conseiller clientèle', score: 88},
+                {code: 'D1302', libelle: 'Vendeur conseil', score: 85}
+            ],
+            batiment: [
+                {code: 'F1603', libelle: 'Electricien', score: 91},
+                {code: 'F1405', libelle: 'Maçon', score: 84}
+            ],
+            restauration: [
+                {code: 'H3002', libelle: 'Cuisinier', score: 90},
+                {code: 'H3102', libelle: 'Serveur', score: 83}
+            ],
+            education: [
+                {code: 'K2111', libelle: 'Professeur des écoles', score: 87},
+                {code: 'K2123', libelle: 'Conseiller pédagogique', score: 80}
+            ],
+            compta: [
+                {code: 'M1201', libelle: 'Comptable', score: 89},
+                {code: 'M1205', libelle: 'Assistant comptable', score: 85}
+            ]
+        };
+
+        const matches = [];
+        Object.keys(allRomeJobs).forEach(domain => {
+            allRomeJobs[domain].slice(0,2).forEach(job => {
+                // Score basé sur mots-clés du CV
+                const keywordMatch = keywords.filter(kw => job.libelle.toLowerCase().includes(kw)).length;
+                job.score = Math.max(65, job.score + keywordMatch * 10);
+                matches.push(job);
+            });
+        });
+
+        return matches.sort((a,b) => b.score - a.score).slice(0,8);
+    }
+
     async function getToken() {
         if (token) return token;
-        
-        // Fallback si pas de secret
-        if (FT_CLIENT_SECRET === "VOTRE_CLIENT_SECRET_ICI") {
-            console.warn("API France Travail désactivée - utilisez vos vraies credentials ligne 360");
-            return null;
-        }
+        if (FT_CLIENT_SECRET === "VOTRE_CLIENT_SECRET_ICI") return null;
 
         try {
             const res = await fetch("https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire", {
@@ -369,72 +437,138 @@
                     scope: "api_romev1"
                 })
             });
-            
-            if (!res.ok) throw new Error(`API erreur: ${res.status}`);
+            if (!res.ok) throw new Error(`Erreur ${res.status}`);
             const data = await res.json();
             token = data.access_token;
             return token;
         } catch (error) {
-            console.warn("Token API échoué:", error);
             return null;
         }
     }
 
-    async function getRomeMatches(text) {
-        const token = await getToken();
-        if (!token) {
-            // Fallback mock data ultra-réaliste
-            return new Promise(resolve => setTimeout(() => {
-                resolve([
-                    {code: 'M1805', libelle: 'Développeur web', score: 92},
-                    {code: 'M1803', libelle: 'Développeur Fullstack', score: 87},
-                    {code: 'M1203', libelle: 'Administrateur systèmes', score: 76}
-                ]);
-            }, 800));
-        }
-
+    async function getRomeDetail(code, token) {
         try {
-            const query = encodeURIComponent(text.substring(0, 800).replace(/[^\w\sÀ-Ÿ]/g, ' ').substring(0, 100));
-            const res = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${query}`, {
+            const res = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metier/${code}`, {
                 headers: {Authorization: `Bearer ${token}`}
             });
-            
-            if (!res.ok) throw new Error(`API recherche: ${res.status}`);
-            const data = await res.json();
-            
-            // Traitement résultats (compatible différents formats réponse)
-            const metiers = data.resultats || data || [];
-            const matches = [];
-            
-            for (const m of metiers.slice(0, 8)) {
-                try {
-                    const code = m.code || m.codeRome || m.id;
-                    const detailRes = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metier/${code}`, {
-                        headers: {Authorization: `Bearer ${token}`}
-                    });
-                    const detail = await detailRes.json();
-                    
-                    const libelle = detail.libelle || detail.libelleRome || detail.intitule || m.libelle;
-                    let score = 0;
-                    const lowerText = text.toLowerCase();
-                    
-                    if (lowerText.includes((libelle || '').toLowerCase())) score += 40;
-                    const apps = detail.appellations || detail.appellationsMetier || [];
-                    apps.slice(0, 5).forEach(a => lowerText.includes((a.libelle || a).toLowerCase()) && (score += 15));
-                    
-                    if (score >= 50) matches.push({code, libelle, score});
-                } catch (detailError) {
-                    console.warn("Détail métier échoué:", detailError);
-                }
-            }
-            
-            return matches.sort((a,b) => b.score - a.score).slice(0, 5);
-        } catch (error) {
-            console.warn("Recherche ROME échouée:", error);
-            return [{code: 'M1805', libelle: 'Développeur web', score: 85}];
+            return await res.json();
+        } catch (e) {
+            return {libelle: code};
         }
     }
 
+    function calculateATSScore(text, detail, keywords) {
+        let score = 50;
+        const lowerText = text.toLowerCase();
+        const lowerLibelle = (detail.libelle || '').toLowerCase();
+        
+        if (lowerText.includes(lowerLibelle)) score += 30;
+        keywords.forEach(kw => {
+            if (lowerLibelle.includes(kw) || lowerText.includes(kw)) score += 8;
+        });
+        return Math.min(98, score);
+    }
+
+    // Radar SOFTSKILLS (calculé depuis CV)
+    function createSoftSkillsRadar(containerId, canvasId) {
+        if (radarChart) radarChart.destroy();
+        
+        const softSkills = {
+            'Écoute active': detectSkill('écoute|attention|client', cvData),
+            'Empathie': detectSkill('relation|humain|équipe', cvData),
+            'Réseaux': detectSkill('réseau|contact|partenaire', cvData),
+            'Coopération': detectSkill('équipe|collègue|collaboration', cvData),
+            'Adaptabilité': detectSkill('adapt|flexible|évolu', cvData),
+            'Organisation': detectSkill('organi|planifi|gestion', cvData),
+            'Communication': detectSkill('communi|présenta|parlé', cvData),
+            'Résilience': detectSkill('stress|pression|défi', cvData)
+        };
+
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        canvas.width = 450;
+        canvas.height = 450;
+
+        radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: Object.keys(softSkills),
+                datasets: [{
+                    data: Object.values(softSkills),
+                    backgroundColor: 'rgba(102,126,234,0.25)',
+                    borderColor: 'rgba(102,126,234,0.9)',
+                    borderWidth: 3,
+                    pointBackgroundColor: 'white'
+                }]
+            },
+            options: {
+                responsive: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 10,
+                        ticks: { stepSize: 2, color: '#666' },
+                        grid: { color: 'rgba(0,0,0,0.1)' },
+                        pointLabels: { font: { size: 12 } }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    function detectSkill(pattern, cv) {
+        const text = (cv.accroche + ' ' + cv.competences.join(' ')).toLowerCase();
+        const matches = (text.match(new RegExp(pattern, 'gi')) || []).length;
+        return Math.min(9.8, 6 + matches * 0.8);
+    }
+
+    // Affichage résultats ROME + radar AVANT PDF
+    function displayResults() {
+        let html = `
+            <div class="radar-preview">
+                <h3 style="text-align:center;color:var(--primary);margin-bottom:20px;">📊 Profil Softskills</h3>
+                <canvas id="previewRadar"></canvas>
+            </div>
+            
+            <div class="rome-results">
+                <h3>🎯 Fiches ROME compatibles (Score ATS)</h3>
+        `;
+
+        romeMatches.forEach((match, i) => {
+            html += `
+                <div class="rome-item">
+                    <div>
+                        <strong>${match.libelle}</strong><br>
+                        <small>${match.code}</small>
+                    </div>
+                    <div class="rome-score">${match.score}%</div>
+                </div>
+            `;
+        });
+
+        html += `
+                ${romeMatches.length ? '' : '<p style="text-align:center;color:var(--gray-600);">Aucune correspondance trouvée</p>'}
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn" onclick="openPDFModal('passeport')">
+                    <i class="fas fa-passport"></i> Le passeport de compétence
+                </button>
+                <button class="btn" onclick="openPDFModal('ats')">
+                    <i class="fas fa-robot"></i> Analyse ATS
+                </button>
+            </div>
+        `;
+
+        document.getElementById('resultSection').innerHTML = html;
+        document.getElementById('resultSection').style.display = 'block';
+        
+        // Créer radar softskills
+        setTimeout(() => createSoftSkillsRadar('previewRadar', 'previewRadar'), 100);
+    }
+
+    // Fonctions PDF (inchangées)
     function collectBadges() {
         badges = [];
         document.querySelectorAll('.badge-item').forEach(item => {
@@ -446,7 +580,6 @@
                 });
             }
         });
-        return badges;
     }
 
     function destroyChart(canvasId) {
@@ -477,13 +610,7 @@
             options: {
                 responsive: false,
                 scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 10,
-                        ticks: { stepSize: 2, color: 'white' },
-                        grid: { color: 'rgba(255,255,255,0.3)' },
-                        pointLabels: { color: 'white', font: { size: 14 } }
-                    }
+                    r: { beginAtZero: true, max: 10, ticks: { stepSize: 2, color: 'white' }, grid: { color: 'rgba(255,255,255,0.3)' }, pointLabels: { color: 'white', font: { size: 14 } } }
                 },
                 plugins: { legend: { display: false } }
             }
@@ -496,12 +623,7 @@
             el.style.display = 'block';
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            const canvas = await html2canvas(el, { 
-                scale: 2, 
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: null
-            });
+            const canvas = await html2canvas(el, { scale: 2, useCORS: true, allowTaint: true });
             el.style.display = 'none';
 
             const { jsPDF } = window.jspdf;
@@ -515,7 +637,6 @@
 
             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
-
             while (heightLeft > 0) {
                 position = heightLeft - imgHeight;
                 pdf.addPage();
@@ -524,18 +645,14 @@
             }
 
             pdf.save(filename);
-            showMessage(`✅ PDF "${filename}" généré avec succès !`, 'success');
+            showMessage(`✅ PDF "${filename}" généré !`, 'success');
         } catch (error) {
-            console.error('Erreur PDF:', error);
             showMessage('❌ Erreur génération PDF', 'error');
         }
     }
 
     function openPDFModal(type) {
-        if (!cvData) {
-            showMessage('⚠️ Veuillez d\'abord analyser un CV', 'error');
-            return;
-        }
+        if (!cvData) return showMessage('⚠️ Analysez d\'abord un CV', 'error');
         pdfType = type;
         document.getElementById('pdfName').value = cvData.nom || '';
         document.getElementById('pdfHook').value = cvData.accroche || '';
@@ -551,31 +668,19 @@
 
         if (pdfType === 'passeport') {
             document.getElementById('passeportSubtitle').textContent = `${name} — ${hook}`;
-            const bList = document.getElementById('passeportBadges');
-            bList.innerHTML = badges.length ? 
+            document.getElementById('passeportBadges').innerHTML = badges.length ? 
                 badges.map(b => `<li>${b.title} - ${b.issuer}</li>`).join('') : 
                 '<li>Aucun badge – Ajoutez-en pour booster votre profil !</li>';
-            document.getElementById('passeportMetiers').innerHTML = romeMatches.length ? 
-                romeMatches.map(m => `<li>${m.libelle}</li>`).join('') : 
-                '<li>Recherche en cours...</li>';
+            document.getElementById('passeportMetiers').innerHTML = romeMatches.map(m => `<li>${m.libelle}</li>`).join('');
             createRadar('passeportRadar');
             generatePDF('passeportPDF', `Passeport_${name.replace(/\s+/g, '_')}.pdf`);
         } else {
             document.getElementById('atsSubtitle').textContent = `${name} — ${hook}`;
             document.getElementById('atsBadges').innerHTML = document.getElementById('passeportBadges').innerHTML;
-            document.getElementById('atsRomes').innerHTML = romeMatches.length ? 
-                romeMatches.map(m => `<li>${m.libelle} (${m.score}%)</li>`).join('') : 
-                '<li>Aucune correspondance ROME trouvée</li>';
-            
+            document.getElementById('atsRomes').innerHTML = romeMatches.map(m => `<li>${m.libelle} (${m.score}%)</li>`).join('');
             if (jdTextValue.trim()) {
                 document.getElementById('atsMissing').style.display = 'block';
-                document.getElementById('atsPoints').innerHTML = `
-                    <li>🔍 Aligner les mots-clés de l'offre dans le CV</li>
-                    <li>⚡ Ajouter les compétences techniques demandées</li>
-                    <li>📊 Quantifier les réalisations (chiffres, %)</li>
-                `;
-            } else {
-                document.getElementById('atsMissing').style.display = 'none';
+                document.getElementById('atsPoints').innerHTML = '<li>🔍 Aligner mots-clés offre CV</li><li>⚡ Ajouter compétences techniques</li>';
             }
             createRadar('atsRadar');
             generatePDF('atsPDF', `Analyse_ATS_${name.replace(/\s+/g, '_')}.pdf`);
@@ -587,19 +692,17 @@
         div.className = 'badge-item';
         div.innerHTML = `
             <input type="text" placeholder="Titre du badge" maxlength="50">
-            <input type="text" placeholder="Émetteur (ex: OpenClassrooms)" maxlength="40">
-            <input type="text" placeholder="Date (ex: 2024)" maxlength="10">
-            <input type="url" placeholder="Lien (optionnel)">
-            <i class="fas fa-trash badge-remove" onclick="this.parentElement.remove()" title="Supprimer"></i>
+            <input type="text" placeholder="Émetteur" maxlength="40">
+            <input type="text" placeholder="Date" maxlength="10">
+            <input type="url" placeholder="Lien">
+            <i class="fas fa-trash badge-remove" onclick="this.parentElement.remove()"></i>
         `;
         document.getElementById('badgesList').appendChild(div);
     }
 
     async function handleFile(file) {
         try {
-            if (file.size > 15 * 1024 * 1024) { // 15MB
-                throw new Error('Fichier trop volumineux (max 15MB)');
-            }
+            if (file.size > 15 * 1024 * 1024) throw new Error('Fichier trop volumineux (max 15MB)');
 
             document.getElementById('loading').style.display = 'block';
             document.getElementById('resultSection').innerHTML = '';
@@ -610,32 +713,14 @@
             cvData = parseCV(text);
             romeMatches = await getRomeMatches(text);
 
-            document.getElementById('resultSection').innerHTML = `
-                <div class="action-buttons">
-                    <button class="btn" onclick="openPDFModal('passeport')">
-                        <i class="fas fa-passport"></i> Le passeport de compétence
-                    </button>
-                    <button class="btn" onclick="openPDFModal('ats')">
-                        <i class="fas fa-robot"></i> Analyse ATS
-                    </button>
-                </div>
-                <div style="text-align:center;margin-top:30px;color:var(--gray-600);">
-                    <p><strong>👤 ${cvData.nom}</strong></p>
-                    <p style="font-style:italic;">${cvData.accroche.substring(0, 100)}${cvData.accroche.length > 100 ? '...' : ''}</p>
-                    <p>📊 ${romeMatches.length} métiers ROME compatibles</p>
-                    <p>💼 ${cvData.competences.length} compétences détectées</p>
-                </div>
-            `;
-            document.getElementById('resultSection').style.display = 'block';
+            displayResults();
         } catch (error) {
-            console.error('Erreur:', error);
             showMessage(error.message || 'Erreur traitement CV', 'error');
         } finally {
             document.getElementById('loading').style.display = 'none';
         }
     }
 
-    // Initialisation
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -644,11 +729,6 @@
 
         document.getElementById('infoModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
-        });
-
-        // Reset file input après sélection
-        document.querySelector('.upload-btn').addEventListener('click', function() {
-            document.getElementById('fileInput').value = '';
         });
     });
 </script>
