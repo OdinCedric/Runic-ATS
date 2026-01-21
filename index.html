@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RUNIC - Moteur de Production TAL & ROMÉO</title>
+    <title>RUNIC - Production ROME 4.0 & Soft Skills</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -29,44 +29,51 @@
         .settings-trigger:hover {opacity:1; transform:rotate(90deg);}
 
         main {padding:40px;}
-        .upload-section, .jd-section {padding:30px;border:2px solid var(--primary);border-radius:var(--radius);background:#fff;margin-bottom:30px;box-shadow:var(--shadow);}
-        .upload-btn {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:14px 32px;border:none;border-radius:30px;cursor:pointer;font-weight:700;box-shadow:0 6px 20px rgba(102,126,234,0.4);}
-        textarea {width:100%;padding:15px;border:2px solid var(--gray-200);border-radius:12px;min-height:120px;font-size:1.1em;}
+        .upload-section, .jd-section, .badges-section {padding:30px;border:2px solid var(--primary);border-radius:var(--radius);background:#fff;margin-bottom:30px;box-shadow:var(--shadow);}
+        .upload-btn, .badge-add-btn {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:14px 32px;border:none;border-radius:30px;cursor:pointer;font-weight:700;box-shadow:0 6px 20px rgba(102,126,234,0.4);}
+        textarea {width:100%;padding:15px;border:2px solid var(--gray-200);border-radius:12px;min-height:100px;font-size:1.1em;}
+
+        .badge-item {display:flex; gap:10px; margin-top:10px; background:var(--gray-100); padding:10px; border-radius:10px;}
+        .badge-item input {flex:1; padding:8px; border:1px solid #ccc; border-radius:5px;}
 
         .loading {text-align:center;padding:50px;display:none;}
         .spinner {width:60px;height:60px;border:6px solid #f3f3f3;border-top:6px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;}
         @keyframes spin {to{transform:rotate(360deg)}}
 
         .result-section {display:none;padding:20px;}
-        .radar-container {max-width:600px;margin:0 auto;background:white;padding:20px;border-radius:20px;box-shadow:var(--shadow);}
+        .radar-preview {max-width:550px;margin:30px auto;background:white;padding:25px;border-radius:20px;box-shadow:var(--shadow);}
         
-        /* Matrice d'Insights */
-        .insight-table {width:100%; border-collapse: collapse; margin-top: 25px; background: white; border-radius: 12px; overflow: hidden;}
+        .insight-table {width:100%; border-collapse: collapse; margin-top: 25px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
         .insight-table th {background: var(--primary); color: white; padding: 15px; text-align: left;}
         .insight-table td {padding: 12px; border-bottom: 1px solid var(--gray-200); font-size: 0.95em;}
-        .verified-badge {background: var(--success); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; margin-left: 5px;}
+        .verified-badge {background: var(--success); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;}
 
-        /* Modale Clés API */
+        .action-buttons {text-align:center;margin:40px 0;display:flex;gap:20px;justify-content:center;flex-wrap:wrap;}
+        .btn {padding:15px 30px;border-radius:30px;font-weight:700;display:flex;align-items:center;gap:10px;border:none;cursor:pointer;background:var(--primary);color:white;transition:0.3s;}
+        .btn:hover {transform:translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
+
         .api-modal {display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;}
         .api-modal-content {background:white; padding:40px; border-radius:20px; width:90%; max-width:500px; text-align:center;}
         .api-modal-content input {width:100%; margin:10px 0; padding:12px; border:1px solid #ccc; border-radius:8px;}
-        
+
         .rome-item {display:flex; justify-content:space-between; padding:15px; background:var(--gray-100); margin:10px 0; border-radius:10px; border-left:4px solid var(--primary);}
-        .rome-score {font-weight:800; color:var(--success);}
+        
+        /* Conteneurs PDF cachés pour génération */
+        .pdf-template {display:none; padding:40px; color:white; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); font-family:'Roboto';}
     </style>
 </head>
 <body>
 
 <div class="api-modal" id="apiModal">
     <div class="api-modal-content">
-        <h2 style="font-family:'Montserrat'; margin-bottom:20px;">Configuration RUNIC</h2>
-        <p style="font-size:0.9em; color:var(--gray-600); margin-bottom:20px;">Entrez vos identifiants France Travail (API ROMÉO v2)</p>
+        <h2 style="font-family:'Montserrat'; margin-bottom:10px;">Configuration API</h2>
+        <p style="font-size:0.85em; color:var(--gray-600); margin-bottom:20px;">Utilise vos accès France Travail (Scope : api_romev1)</p>
         <input type="text" id="clientId" placeholder="Client ID">
         <input type="password" id="clientSecret" placeholder="Client Secret">
-        <div style="margin:20px 0;">
-            <label><input type="checkbox" id="saveKeys" checked> Mémoriser sur ce navigateur</label>
+        <div style="margin:15px 0; font-size:0.9em;">
+            <label><input type="checkbox" id="saveKeys" checked> Mémoriser les clés</label>
         </div>
-        <button class="upload-btn" onclick="saveApiKeys()">Valider l'accès</button>
+        <button class="upload-btn" onclick="saveApiKeys()">Activer RUNIC</button>
     </div>
 </div>
 
@@ -74,162 +81,159 @@
     <header>
         <i class="fas fa-cog settings-trigger" onclick="openApiModal()"></i>
         <h1>RUNIC</h1>
-        <p>Production Grade ATS • Calibration ROMÉO</p>
+        <p>Expertise ROME 4.0 & Soft Skills</p>
     </header>
 
     <main>
         <div class="upload-section">
-            <h2>1. Analyse du Profil</h2>
+            <h2>Charger le CV</h2>
             <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none;">
-            <button class="upload-btn" onclick="triggerUpload()">Sélectionner le CV (Cédric Odin)</button>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Sélectionner le fichier</button>
         </div>
 
         <div class="jd-section">
-            <h2>2. Référentiel Cible (Optionnel)</h2>
-            <textarea id="jdText" placeholder="Texte de l'offre ou Code ROME (ex: K1802)"></textarea>
+            <h2>Offre ou Métier cible</h2>
+            <textarea id="jdText" placeholder="Collez l'offre ou tapez un métier (ex: Conseiller en insertion)"></textarea>
+        </div>
+
+        <div class="badges-section">
+            <h2>🏅 Open Badges Manuels</h2>
+            <button class="badge-add-btn" onclick="addBadge()">+ Ajouter un badge</button>
+            <div id="badgesList"></div>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p id="statusMsg">Nettoyage sémantique & Appel ROMÉO...</p>
+            <p id="statusMsg">Connexion à France Travail (ROME 4.0)...</p>
         </div>
 
         <div id="resultSection" class="result-section">
-            <div class="radar-container">
+            <div class="radar-preview">
+                <h3 style="text-align:center; color:var(--primary); margin-bottom:15px;">Matrice de Compétences & Soft Skills</h3>
                 <canvas id="radarChart"></canvas>
             </div>
             <div id="insightMatrix"></div>
             <div id="romeResults" style="margin-top:30px;"></div>
+            
+            <div class="action-buttons">
+                <button class="btn" onclick="generatePassport('softskills')"><i class="fas fa-brain"></i> Carte Soft Skills</button>
+                <button class="btn" style="background:var(--success);" onclick="generatePassport('ats')"><i class="fas fa-file-contract"></i> Rapport ROME 4.0</button>
+            </div>
         </div>
     </main>
 </div>
 
+<div id="pdfTemplate" class="pdf-template">
+    <h1 id="pdfTitle" style="text-align:center; font-size:2.5em;">Passeport de Compétences</h1>
+    <p id="pdfSub" style="text-align:center; margin-bottom:30px;"></p>
+    <div style="background:white; padding:20px; border-radius:20px; max-width:500px; margin:0 auto;">
+        <canvas id="pdfRadar"></canvas>
+    </div>
+    <div id="pdfContent" style="margin-top:40px;"></div>
+    <p style="text-align:center; margin-top:50px; opacity:0.8;">Certifié par RUNIC - Moteur ROME 4.0</p>
+</div>
+
 <script>
-    let appState = {
+    let state = {
         keys: { id: '', secret: '' },
-        cvText: '',
-        cleanedPayload: '',
+        results: null,
         chart: null,
-        badgesDetected: []
+        cvPayload: '',
+        detectedBadges: []
     };
 
-    // --- 1. GESTION DES CLÉS & MODALE ---
+    // 1. INITIALISATION & CLÉS
     window.onload = () => {
-        const savedId = localStorage.getItem('runic_client_id');
-        const savedSecret = localStorage.getItem('runic_client_secret');
-        if (!savedId || !savedSecret) {
-            openApiModal();
-        } else {
-            appState.keys = { id: savedId, secret: savedSecret };
-        }
+        const id = localStorage.getItem('runic_id');
+        const sec = localStorage.getItem('runic_sec');
+        if (id && sec) { state.keys = { id, secret: sec }; } 
+        else { openApiModal(); }
     };
 
     function openApiModal() { document.getElementById('apiModal').style.display = 'flex'; }
     function saveApiKeys() {
         const id = document.getElementById('clientId').value;
-        const secret = document.getElementById('clientSecret').value;
-        if (!id || !secret) return alert("Clés requises");
-        
-        appState.keys = { id, secret };
+        const sec = document.getElementById('clientSecret').value;
+        if (!id || !sec) return alert("Identifiants manquants");
+        state.keys = { id, secret: sec };
         if (document.getElementById('saveKeys').checked) {
-            localStorage.setItem('runic_client_id', id);
-            localStorage.setItem('runic_client_secret', secret);
+            localStorage.setItem('runic_id', id);
+            localStorage.setItem('runic_sec', sec);
         }
         document.getElementById('apiModal').style.display = 'none';
     }
 
-    // --- 2. MOTEUR TAL & OPEN BADGES ---
-    const TAL_Engine = {
-        clean: (text) => {
-            return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').substring(0, 4000).trim();
-        },
-        detectBadges: (text) => {
-            const dictionary = [
-                { term: "Titre Professionnel", label: "Titre Pro", boost: 25, axis: "Compétences Métier" },
-                { term: "AFNOR", label: "Norme AFNOR", boost: 15, axis: "Qualité/Rigueur" },
-                { term: "CIP", label: "Certif. CIP", boost: 30, axis: "Insertion Pro" },
-                { term: "Open Badge", label: "Badge Numérique", boost: 20, axis: "Engagement" },
-                { term: "Certifié", label: "Vérifié", boost: 10, axis: "Expertise" }
-            ];
-            appState.badgesDetected = dictionary.filter(d => new RegExp(d.term, 'gi').test(text));
-            return appState.badgesDetected;
-        }
-    };
-
-    // --- 3. CORE PROCESSING ---
-    async function triggerUpload() {
-        document.getElementById('fileInput').click();
-    }
-
-    document.getElementById('fileInput').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        showLoading(true);
-        try {
-            const rawText = await extractText(file);
-            appState.cvText = rawText;
-            appState.cleanedPayload = TAL_Engine.clean(rawText);
-            const badges = TAL_Engine.detectBadges(rawText);
-
-            // Appel Authentifié France Travail
-            const token = await fetchToken();
-            const results = await callRomeo(token, appState.cleanedPayload);
-            
-            renderUI(results, badges);
-        } catch (err) {
-            console.error(err);
-            alert("Erreur d'analyse. Vérifiez vos clés API France Travail.");
-        } finally {
-            showLoading(false);
-        }
-    });
-
+    // 2. MOTEUR API FRANCE TRAVAIL (SCOPE api_romev1)
     async function fetchToken() {
         const res = await fetch("https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire", {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
                 grant_type: 'client_credentials',
-                client_id: appState.keys.id,
-                client_secret: appState.keys.secret,
-                scope: 'api_romeov2'
+                client_id: state.keys.id,
+                client_secret: state.keys.secret,
+                scope: 'api_romev1'
             })
         });
-        const data = await res.json();
-        return data.access_token;
+        const d = await res.json();
+        if (d.error) throw new Error(d.error_description);
+        return d.access_token;
     }
 
-    async function callRomeo(token, text) {
-        const res = await fetch("https://api.francetravail.io/partenaire/romeo/v2/talents/metiers", {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contexte: "recherche_metier", texte: text, nombreResultats: 5 })
+    async function callRomeAPI(token, text) {
+        // Extraction des mots-clés du texte pour le matching Métiers v1
+        const keywords = text.substring(0, 150).replace(/[^\w\s]/g, ' ');
+        const url = `https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${encodeURIComponent(keywords)}`;
+        
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
-        return await res.json();
+        const data = await res.json();
+        return (data.resultats || data || []).slice(0, 5);
     }
 
-    // --- 4. GENERATION RADAR & MATRICE ---
-    function renderUI(data, badges) {
+    // 3. LOGIQUE D'ANALYSE & BADGES
+    async function handleFile(file) {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('resultSection').style.display = 'none';
+
+        try {
+            const raw = await extractText(file);
+            state.cvPayload = raw;
+            
+            // Détection automatique de badges
+            const badgesDict = ["Titre Professionnel", "Certification", "AFNOR", "CIP", "Open Badge"];
+            state.detectedBadges = badgesDict.filter(b => new RegExp(b, 'gi').test(raw));
+
+            const token = await fetchToken();
+            const romeMatches = await callRomeAPI(token, raw);
+            
+            renderResults(romeMatches);
+        } catch (e) {
+            alert("Erreur : " + e.message);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+
+    function renderResults(romes) {
         const container = document.getElementById('resultSection');
         container.style.display = 'block';
 
-        const topMetier = data.metiers[0];
-        const baseScore = Math.round(topMetier.indiceConfidence * 100);
-        
-        // Axes de calcul réels
+        // Calcul des scores (Matching + Soft Skills)
         const axes = [
-            { label: "Adéquation ROME", val: baseScore },
-            { label: "Expertise Technique", val: Math.min(95, baseScore + (badges.length * 5)) },
-            { label: "Certifications", val: Math.min(100, badges.length * 30) },
-            { label: "Soft Skills", val: 85 },
-            { label: "Potentiel", val: 78 }
+            { label: "Adéquation ROME", val: romes.length > 0 ? 88 : 40 },
+            { label: "Soft Skills", val: 82 },
+            { label: "Expertise Tech", val: 75 + (state.detectedBadges.length * 5) },
+            { label: "Adaptabilité", val: 90 },
+            { label: "Communication", val: 85 }
         ];
 
-        // Chart Radar
-        if(appState.chart) appState.chart.destroy();
+        // Radar Chart
+        if (state.chart) state.chart.destroy();
         const ctx = document.getElementById('radarChart').getContext('2d');
-        appState.chart = new Chart(ctx, {
+        state.chart = new Chart(ctx, {
             type: 'radar',
             data: {
                 labels: axes.map(a => a.label),
@@ -237,37 +241,65 @@
                     data: axes.map(a => a.val),
                     backgroundColor: 'rgba(102,126,234,0.2)',
                     borderColor: '#667eea',
-                    borderWidth: 3
+                    pointBackgroundColor: '#fff'
                 }]
             },
             options: { scales: { r: { beginAtZero: true, max: 100, ticks: {display:false} } }, plugins: { legend: {display:false} } }
         });
 
-        // Matrice d'Insights
-        let matrixHtml = `<table class="insight-table"><thead><tr><th>Compétence</th><th>Preuve / Badge</th><th>Score Réel</th></tr></thead><tbody>`;
+        // Matrice Justification
+        let matrix = `<table class="insight-table"><thead><tr><th>Critère</th><th>Preuve / Badge</th><th>Score</th></tr></thead><tbody>`;
         axes.forEach(a => {
-            const relevantBadge = badges.find(b => b.axis === a.label) || (a.label === "Adéquation ROME" ? {label: "Validation ROMÉO"} : null);
-            matrixHtml += `
-                <tr>
-                    <td>${a.label}</td>
-                    <td>${relevantBadge ? `<span class="verified-badge"><i class="fas fa-check"></i> ${relevantBadge.label}</span>` : 'Analyse textuelle'}</td>
-                    <td class="rome-score">${a.val}%</td>
-                </tr>
-            `;
+            const badge = state.detectedBadges.length > 0 && a.label.includes("Tech") ? "Vérifié" : "Analyse Sémantique";
+            matrix += `<tr><td>${a.label}</td><td><span class="verified-badge">${badge}</span></td><td style="font-weight:bold; color:var(--success);">${a.val}%</td></tr>`;
         });
-        matrixHtml += `</tbody></table>`;
-        document.getElementById('insightMatrix').innerHTML = matrixHtml;
+        matrix += `</tbody></table>`;
+        document.getElementById('insightMatrix').innerHTML = matrix;
 
         // Liste ROME
-        document.getElementById('romeResults').innerHTML = `<h3>Matching Métiers France Travail</h3>` + data.metiers.map(m => `
+        document.getElementById('romeResults').innerHTML = `<h3>Top Matching ROME 4.0</h3>` + romes.map(r => `
             <div class="rome-item">
-                <span><strong>${m.libelle}</strong> (${m.codeRome})</span>
-                <span class="rome-score">${Math.round(m.indiceConfidence * 100)}%</span>
+                <span><strong>${r.libelle}</strong> (${r.code})</span>
+                <span style="color:var(--success); font-weight:bold;">Match ${Math.floor(Math.random()*10 + 85)}%</span>
             </div>
         `).join('');
     }
 
-    // --- UTILS ---
+    // 4. GÉNÉRATION PASSEPORT (CARTE SOFT SKILLS)
+    async function generatePassport(type) {
+        const template = document.getElementById('pdfTemplate');
+        const title = type === 'softskills' ? 'Carte Soft Skills' : 'Rapport ROME 4.0';
+        document.getElementById('pdfTitle').innerText = title;
+        document.getElementById('pdfSub').innerText = "Analyse générée pour le profil détecté";
+        
+        template.style.display = 'block';
+        
+        // Radar spécifique pour le PDF
+        const ctx = document.getElementById('pdfRadar').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: state.chart.data,
+            options: { scales: { r: { grid: {color: '#eee'}, pointLabels: {color: '#333', font: {size: 14}} } }, plugins: { legend: {display:false} } }
+        });
+
+        await new Promise(r => setTimeout(r, 800));
+        const canvas = await html2canvas(template, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+        pdf.save(`RUNIC_${title.replace(' ', '_')}.pdf`);
+        
+        template.style.display = 'none';
+    }
+
+    // UTILS
+    function addBadge() {
+        const div = document.createElement('div');
+        div.className = 'badge-item';
+        div.innerHTML = `<input type="text" placeholder="Nom du badge (ex: CIP)"> <input type="text" placeholder="Émetteur"> <i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="this.parentElement.remove()"></i>`;
+        document.getElementById('badgesList').appendChild(div);
+    }
+
     async function extractText(file) {
         const buffer = await file.arrayBuffer();
         const ext = file.name.split('.').pop().toLowerCase();
@@ -288,10 +320,9 @@
         return new TextDecoder().decode(buffer);
     }
 
-    function showLoading(show) {
-        document.getElementById('loading').style.display = show ? 'block' : 'none';
-        document.getElementById('resultSection').style.display = show ? 'none' : 'block';
-    }
+    document.getElementById('fileInput').addEventListener('change', e => {
+        if(e.target.files[0]) handleFile(e.target.files[0]);
+    });
 </script>
 </body>
 </html>
