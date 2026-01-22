@@ -2,8 +2,12 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Runic-ATS v6.0 - Passeport & Expert 4.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runic-ATS | Expert ROME 4.0</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11,234 +15,239 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --p: #4e54c8; --s: #28a745; --d: #ff4b2b; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; }
-        header { background: linear-gradient(45deg, #4e54c8, #8f94fb); color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+        :root {
+            --primary: #667eea; --primary-dark: #764ba2; --success: #28a745; --danger: #dc3545; --warning: #ffc107;
+            --gray-100: #f8f9ff; --gray-200: #e2e8f0; --radius: 16px; --shadow: 0 8px 25px rgba(102,126,234,.2);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {font-family:'Roboto',sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:20px; min-height:100vh;}
+        .container {max-width:1100px; margin:0 auto; background:white; border-radius:var(--radius); box-shadow:0 20px 60px rgba(0,0,0,.3); overflow:hidden;}
         
-        .status-pill { background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; gap: 10px; font-size: 0.85em; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
-        .dot.active { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+        header {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:white; padding:40px; text-align:center; position:relative;}
+        header h1 {font-family:'Montserrat',sans-serif; font-size:2.8em; font-weight:800; letter-spacing:-1px;}
+        
+        /* BARRE DE STATUT HAUTE */
+        .api-status {position:absolute; top:15px; left:20px; display:flex; align-items:center; gap:10px; background:rgba(0,0,0,0.2); padding:8px 15px; border-radius:20px; font-size:0.85em;}
+        .dot {width:12px; height:12px; border-radius:50%; background:var(--warning);}
+        .dot.online {background:var(--success); box-shadow: 0 0 10px var(--success);}
+        .dot.offline {background:var(--danger); box-shadow: 0 0 10px var(--danger);}
+        
+        .settings-btn {position:absolute; top:15px; right:20px; color:white; font-size:1.5em; cursor:pointer;}
 
-        main { padding: 30px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .card { background: white; border: 1px solid #e1e4e8; padding: 20px; border-radius: 15px; }
+        main {padding:30px;}
+        .grid {display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:25px;}
+        .card {background:white; border:2px solid var(--gray-200); border-radius:var(--radius); padding:25px; height:100%;}
         
-        textarea { width: 100%; height: 100px; border: 1px solid #ddd; border-radius: 10px; padding: 10px; margin-top: 10px; resize: none; }
-        
-        .btn-main { width: 100%; background: var(--p); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-secondary { background: #6c757d; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.9em; margin-top: 10px; }
-        
-        .badge-tag { background: #e8f0fe; color: #1a73e8; padding: 5px 12px; border-radius: 15px; font-size: 0.75em; font-weight: bold; border: 1px solid #1a73e8; display: inline-block; margin: 2px; }
-        
-        #results { display: none; margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
-        
-        /* Styles Passeport / Carte */
-        #passport-zone { width: 400px; padding: 25px; background: white; border: 10px solid var(--p); border-radius: 20px; color: #333; position: absolute; left: -9999px; }
-        
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 40px; border-radius: 20px; width: 350px; text-align: center; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .btn {padding:12px 25px; border-radius:25px; border:none; color:white; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:0.3s;}
+        .btn-primary {background:var(--primary);}
+        .btn-success {background:var(--success); width:100%; margin-top:15px; font-size:1.1em;}
+        .btn-danger {background:var(--danger);}
+        .btn-badge {background:var(--gray-200); color:var(--primary-dark); font-size:0.8em; padding:8px 15px; margin-top:10px;}
+
+        textarea {width:100%; height:120px; padding:15px; border-radius:10px; border:1px solid var(--gray-200); margin-top:10px; font-family:inherit;}
+
+        .badge-tag {background:var(--gray-100); color:var(--primary); padding:5px 12px; border-radius:15px; font-size:0.75em; border:1px solid var(--primary); display:inline-block; margin:3px;}
+
+        #results {display:none; animation: fadeIn 0.5s;}
+        @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+        /* MODAL */
+        .modal {display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; align-items:center; justify-content:center;}
+        .modal-content {background:white; padding:30px; border-radius:20px; width:400px; text-align:center;}
+        .modal-content input {width:100%; padding:12px; margin:10px 0; border:1px solid #ccc; border-radius:8px;}
+
+        /* PASSPORT ZONE (CACHÉE) */
+        #passport-render { position: absolute; left: -9999px; width: 500px; padding: 40px; background: white; border: 15px solid var(--primary); border-radius: 30px; }
     </style>
 </head>
 <body>
 
-<div id="authModal" class="modal">
+<div class="modal" id="apiModal">
     <div class="modal-content">
-        <h2>Runic-ATS Connexion</h2>
+        <h2 style="font-family:'Montserrat'">Identification</h2>
         <input type="text" id="cid" placeholder="Client ID">
         <input type="password" id="csec" placeholder="Client Secret">
-        <button class="btn-main" onclick="initApp()">Lancer la Console</button>
+        <button class="btn btn-primary" style="width:100%" onclick="saveKeys()">Activer la liaison</button>
     </div>
 </div>
 
 <div class="container">
     <header>
-        <h1>Runic-ATS <span style="font-weight: 300;">Passeport 4.0</span></h1>
-        <div class="status-pill">
+        <div class="api-status">
             <div id="statusDot" class="dot"></div>
-            <span id="statusLabel">Vérification API...</span>
+            <span id="statusText">Connexion...</span>
+            <button onclick="testFullAuth()" style="background:none; border:1px solid white; color:white; font-size:0.7em; cursor:pointer; padding:2px 5px; border-radius:5px; margin-left:10px;">TEST API</button>
         </div>
+        <i class="fas fa-cog settings-btn" onclick="document.getElementById('apiModal').style.display='flex'"></i>
+        <h1>Runic-ATS</h1>
+        <p>Générateur de Passeport ROME 4.0</p>
     </header>
 
     <main>
         <div class="grid">
             <div class="card">
-                <h3><i class="fas fa-file-pdf"></i> Profil Candidat</h3>
-                <input type="file" id="cvFile" style="margin-top:10px;">
-                <div id="badgeContainer" style="margin-top:15px; min-height: 40px; border: 1px dashed #ccc; padding: 10px; border-radius: 10px;">
-                    <p style="font-size: 0.8em; color: gray;">Badges détectés ou ajoutés :</p>
-                    <div id="badgeList"></div>
-                </div>
-                <button class="btn-secondary" onclick="addManualBadge()">+ Ajouter un badge manuellement</button>
+                <h3><i class="fas fa-user-circle"></i> Dossier Candidat</h3>
+                <input type="file" id="cvFile" style="display:none" accept=".pdf,.docx">
+                <button class="btn btn-primary" style="margin-top:15px;" onclick="document.getElementById('cvFile').click()">Charger un CV</button>
+                <div id="badgeList" style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;"></div>
+                <button class="btn btn-badge" onclick="addManualBadge()">+ Ajouter Badge</button>
             </div>
             <div class="card">
-                <h3><i class="fas fa-search"></i> Analyse Comparaison</h3>
-                <textarea id="jdInput" placeholder="Collez l'annonce ou le référentiel métier ici..."></textarea>
+                <h3><i class="fas fa-briefcase"></i> Annonce / Métier Cible</h3>
+                <textarea id="jdInput" placeholder="Collez l'annonce pour comparer avec le CV..."></textarea>
             </div>
         </div>
 
-        <button class="btn-main" id="analyzeBtn" onclick="runAnalysis()">
-            <i class="fas fa-rocket"></i> LANCER L'ANALYSE & GÉNÉRER PASSEPORT
-        </button>
+        <button id="mainBtn" class="btn btn-success" onclick="startAnalysis()">LANCER L'ANALYSE & GÉNÉRER PASSEPORT</button>
 
         <div id="results">
-            <div class="grid">
+            <div class="grid" style="margin-top:25px;">
                 <div class="card"><canvas id="radarChart"></canvas></div>
                 <div class="card">
-                    <h3>Top 5 ROME 4.0</h3>
-                    <div id="romeResults"></div>
-                    <button class="btn-main" style="background: #333;" onclick="exportPassport()">
-                        <i class="fas fa-id-card"></i> EXPORTER LE PASSEPORT PDF
+                    <h3>Matching ROME 4.0</h3>
+                    <div id="romeMatches" style="margin-top:10px;"></div>
+                    <button class="btn" style="background:#333; width:100%; margin-top:20px;" onclick="exportPassport()">
+                        <i class="fas fa-file-export"></i> EXPORTER PASSEPORT PDF
                     </button>
                 </div>
-            </div>
-            <div class="card">
-                <h3>Savoir-faire (ROME 4.0)</h3>
-                <div id="skillsCloud" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
             </div>
         </div>
     </main>
 </div>
 
-<div id="passport-zone">
-    <h2 style="color:var(--p); margin-bottom: 5px;">Passeport de Compétences</h2>
-    <p style="font-size: 0.8em; border-bottom: 2px solid #eee; padding-bottom: 10px;">Expertise Runic-ATS v6.0</p>
-    <div id="pass-radar" style="width: 300px; margin: 10px auto;"></div>
-    <div style="margin-top: 15px;">
-        <h4 style="margin-bottom: 5px;">Métier Cible :</h4>
-        <p id="pass-rome" style="font-weight: bold;"></p>
-    </div>
-    <div style="margin-top: 10px;">
-        <h4 style="margin-bottom: 5px;">Certifications & Badges :</h4>
-        <div id="pass-badges"></div>
-    </div>
+<div id="passport-render">
+    <h1 style="color:var(--primary); border-bottom:3px solid var(--primary); padding-bottom:10px;">Passeport de Compétences</h1>
+    <div id="passRadarImg" style="text-align:center; margin:20px 0;"></div>
+    <h3 style="color:var(--primary-dark)">Métier identifié :</h3>
+    <p id="passRomeName" style="font-size:1.4em; font-weight:bold; margin-bottom:20px;"></p>
+    <h3 style="color:var(--primary-dark)">Badges & Certifications :</h3>
+    <div id="passBadgeList" style="line-height:1.8;"></div>
 </div>
 
 <script>
-    let config = { id: '', sec: '', token: null, badges: [] };
-    const PROXY = "https://api.allorigins.win/raw?url=";
+    let app = { id:'', sec:'', token:null, badges:[], chart:null };
+    
+    // TRIPLE PROXY POUR EVITER LES ERREURS AUTH
+    const proxies = [
+        "https://api.allorigins.win/raw?url=",
+        "https://corsproxy.io/?",
+        "https://cors-anywhere.herokuapp.com/"
+    ];
+    let currentProxyIdx = 0;
 
     window.onload = () => {
-        if(localStorage.getItem('runic_id')) {
-            document.getElementById('authModal').style.display = 'none';
-            initApp(true);
-        }
+        const id = localStorage.getItem('r_id'), sec = localStorage.getItem('r_sec');
+        if(id && sec) { app.id = id; app.sec = sec; testFullAuth(); } 
+        else { document.getElementById('apiModal').style.display='flex'; }
     };
 
-    async function initApp(fromStorage = false) {
-        if(!fromStorage) {
-            config.id = document.getElementById('cid').value;
-            config.sec = document.getElementById('csec').value;
-            localStorage.setItem('runic_id', config.id);
-            localStorage.setItem('runic_sec', config.sec);
-        } else {
-            config.id = localStorage.getItem('runic_id');
-            config.sec = localStorage.getItem('runic_sec');
-        }
-        document.getElementById('authModal').style.display = 'none';
-        await checkConnection();
+    function saveKeys() {
+        app.id = document.getElementById('cid').value;
+        app.sec = document.getElementById('csec').value;
+        localStorage.setItem('r_id', app.id); localStorage.setItem('r_sec', app.sec);
+        document.getElementById('apiModal').style.display='none';
+        testFullAuth();
     }
 
-    async function checkConnection() {
+    async function testFullAuth() {
+        updateStatus('warning', 'Auth...');
         try {
-            config.token = await fetchToken();
-            document.getElementById('statusDot').className = "dot active";
-            document.getElementById('statusLabel').innerText = "API Connectée";
+            app.token = await fetchToken();
+            updateStatus('online', 'Connecté');
         } catch(e) {
-            document.getElementById('statusDot').className = "dot";
-            document.getElementById('statusLabel').innerText = "Erreur Auth";
+            updateStatus('offline', 'Erreur Auth');
+            console.error(e);
         }
     }
 
     async function fetchToken() {
-        const authUrl = "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire";
-        const res = await fetch(PROXY + encodeURIComponent(authUrl), {
+        const url = encodeURIComponent("https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire");
+        const credentials = btoa(`${app.id}:${app.sec}`);
+        
+        const res = await fetch(proxies[currentProxyIdx] + url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ grant_type: 'client_credentials', client_id: config.id, client_secret: config.sec, scope: 'api_romev1' })
+            headers: { 
+                'Authorization': `Basic ${credentials}`,
+                'Content-Type': 'application/x-www-form-urlencoded' 
+            },
+            body: new URLSearchParams({ grant_type: 'client_credentials', scope: 'api_romev1' })
         });
-        const data = await res.json();
-        return data.access_token;
+        
+        if(!res.ok && currentProxyIdx < proxies.length - 1) {
+            currentProxyIdx++; return fetchToken(); // Switch proxy on failure
+        }
+        
+        const d = await res.json();
+        return d.access_token;
     }
 
     function addManualBadge() {
-        const val = prompt("Nom du Badge ou de la Certification :");
-        if(val) {
-            config.badges.push(val);
-            renderBadgeList();
-        }
+        const b = prompt("Nom de la certification :");
+        if(b) { app.badges.push(b); renderBadges(); }
     }
 
-    function renderBadgeList() {
-        document.getElementById('badgeList').innerHTML = config.badges.map(b => `<span class="badge-tag"><i class="fas fa-medal"></i> ${b}</span>`).join('');
+    function renderBadges() {
+        document.getElementById('badgeList').innerHTML = app.badges.map(b => `<span class="badge-tag">${b}</span>`).join('');
     }
 
-    async function runAnalysis() {
+    async function startAnalysis() {
         const file = document.getElementById('cvFile').files[0];
-        if(!file) return alert("Veuillez charger un CV");
-
-        document.getElementById('analyzeBtn').innerText = "Analyse en cours...";
-        const cvText = await extractText(file);
+        if(!file) return alert("Chargez d'abord un CV !");
         
-        // Auto-détection
-        const words = ["Certification", "Diplôme", "Badge", "Titre Pro", "Habilitation"];
-        words.forEach(w => {
-            if(new RegExp(w, 'gi').test(cvText) && !config.badges.includes(w)) config.badges.push(w);
+        document.getElementById('mainBtn').innerText = "Analyse ROME 4.0...";
+        const text = await extractText(file);
+        
+        // Auto-détection de badges
+        ["Certification", "Diplôme", "Badge", "Habilitation", "Titre Pro"].forEach(k => {
+            if(new RegExp(k, 'gi').test(text) && !app.badges.includes(k)) app.badges.push(k);
         });
-        renderBadgeList();
+        renderBadges();
 
-        // ROME API
         try {
-            const searchUrl = `https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${encodeURIComponent(cvText.substring(0,120))}`;
-            const res = await fetch(PROXY + encodeURIComponent(searchUrl), { headers: { 'Authorization': `Bearer ${config.token}` } });
+            const searchUrl = encodeURIComponent(`https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${text.substring(0,100)}`);
+            const res = await fetch(proxies[currentProxyIdx] + searchUrl, { headers: { 'Authorization': `Bearer ${app.token}` } });
             const romes = (await res.json()).resultats || [];
-
-            let skills = [];
-            if(romes.length > 0) {
-                const skUrl = `https://api.francetravail.io/partenaire/rome/v1/metiers/competences/${romes[0].code}`;
-                const skRes = await fetch(PROXY + encodeURIComponent(skUrl), { headers: { 'Authorization': `Bearer ${config.token}` } });
-                skills = (await skRes.json()).competencesMobilisees || [];
-            }
-            renderResultsUI(romes, skills);
-        } catch(e) { alert("Erreur API ROME"); }
-        document.getElementById('analyzeBtn').innerText = "LANCER L'ANALYSE & GÉNÉRER PASSEPORT";
+            renderUI(romes);
+        } catch(e) { alert("Erreur lors de l'appel API"); }
+        document.getElementById('mainBtn').innerText = "LANCER L'ANALYSE & GÉNÉRER PASSEPORT";
     }
 
-    function renderResultsUI(romes, skills) {
+    function renderUI(romes) {
         document.getElementById('results').style.display = 'block';
-        document.getElementById('romeResults').innerHTML = romes.slice(0,5).map(r => `<div style="padding:10px; border-bottom:1px solid #eee;"><strong>${r.code}</strong> - ${r.libelle}</div>`).join('');
-        document.getElementById('skillsCloud').innerHTML = skills.slice(0,15).map(s => `<span class="badge-tag" style="background:#eee; color:#333;">${s.libelle}</span>`).join('');
-        
-        const ctx = document.getElementById('radarChart').getContext('2d');
-        if(window.myChart) window.myChart.destroy();
-        window.myChart = new Chart(ctx, {
+        document.getElementById('romeMatches').innerHTML = romes.slice(0,5).map(r => `
+            <div style="padding:12px; border-bottom:1px solid #eee;"><strong>${r.code}</strong> - ${r.libelle}</div>
+        `).join('');
+
+        if(app.chart) app.chart.destroy();
+        app.chart = new Chart(document.getElementById('radarChart'), {
             type: 'radar',
             data: {
-                labels: ['Métier', 'Badges', 'Savoir-faire', 'Expérience', 'Potentiel'],
+                labels: ['Métier', 'Badges', 'Expérience', 'Adéquation', 'Soft Skills'],
                 datasets: [{
-                    label: 'Profil',
-                    data: [90, config.badges.length * 20, 85, 75, 80],
-                    backgroundColor: 'rgba(78, 84, 200, 0.2)', borderColor: '#4e54c8'
+                    label: 'Score Profil',
+                    data: [95, app.badges.length * 20, 70, 85, 90],
+                    backgroundColor: 'rgba(102,126,234,0.2)', borderColor: '#667eea'
                 }]
             },
             options: { scales: { r: { beginAtZero: true, max: 100, ticks: { display: false } } } }
         });
-
-        // Mise à jour de la zone passeport
-        document.getElementById('pass-rome').innerText = romes[0] ? romes[0].libelle : "Non défini";
-        document.getElementById('pass-badges').innerHTML = config.badges.map(b => `• ${b}<br>`).join('');
     }
 
     async function exportPassport() {
-        const radarImg = document.getElementById('radarChart').toDataURL('image/png');
-        document.getElementById('pass-radar').innerHTML = `<img src="${radarImg}" style="width:100%">`;
+        document.getElementById('passRomeName').innerText = document.getElementById('romeMatches').innerText.split('\n')[0];
+        document.getElementById('passBadgeList').innerHTML = app.badges.map(b => `• ${b}`).join('<br>');
+        document.getElementById('passRadarImg').innerHTML = `<img src="${document.getElementById('radarChart').toDataURL()}" style="width:300px">`;
         
-        const zone = document.getElementById('passport-zone');
-        const canvas = await html2canvas(zone, { scale: 2 });
+        const canvas = await html2canvas(document.getElementById('passport-render'), { scale: 2 });
         const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 100, 0);
-        pdf.save("Passeport_Competences.pdf");
+        pdf.save("Passeport_Runic.pdf");
+    }
+
+    function updateStatus(c, t) {
+        const d = document.getElementById('statusDot');
+        d.className = 'dot ' + (c === 'online' ? 'online' : c === 'offline' ? 'offline' : '');
+        document.getElementById('statusText').innerText = t;
     }
 
     async function extractText(f) {
