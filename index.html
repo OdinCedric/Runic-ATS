@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RUNIC - Production ROME 4.0 & Soft Skills</title>
+    <title>Runic-ATS - Console Expert ROME 4.0</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -16,312 +16,263 @@
 
     <style>
         :root {
-            --primary: #667eea; --primary-dark: #764ba2; --success: #28a745; --danger: #dc3545;
-            --gray-100: #f8f9ff; --gray-200: #e2e8f0; --gray-600: #6c757d; --radius: 16px; --shadow: 0 8px 25px rgba(102,126,234,.2);
+            --primary: #667eea; --primary-dark: #764ba2; --success: #28a745; --danger: #dc3545; --warning: #ffc107;
+            --gray-100: #f8f9ff; --gray-200: #e2e8f0; --radius: 16px; --shadow: 0 8px 25px rgba(102,126,234,.2);
         }
         * { margin:0; padding:0; box-sizing:border-box; }
-        body {font-family:'Roboto',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;color:#333;min-height:100vh;}
-        .container {max-width:1200px;margin:0 auto;background:white;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
-        header {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:40px;text-align:center;position:relative;}
-        header h1 {font-family:'Montserrat',sans-serif;font-size:clamp(2.5em,7vw,4em);font-weight:800;}
+        body {font-family:'Roboto',sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:20px; min-height:100vh;}
+        .container {max-width:1100px; margin:0 auto; background:white; border-radius:var(--radius); box-shadow:0 20px 60px rgba(0,0,0,.3); overflow:hidden;}
         
-        .settings-trigger {position:absolute; top:20px; right:20px; color:white; font-size:1.5em; cursor:pointer; opacity:0.7; transition:0.3s;}
-        .settings-trigger:hover {opacity:1; transform:rotate(90deg);}
+        header {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:white; padding:30px; text-align:center; position:relative;}
+        
+        .top-bar {position:absolute; top:10px; left:20px; right:20px; display:flex; justify-content:space-between; align-items:center;}
+        .status-group {display:flex; align-items:center; gap:10px; background:rgba(0,0,0,0.2); padding:5px 15px; border-radius:20px; font-size:0.8em;}
+        .dot {width:10px; height:10px; border-radius:50%; background:var(--warning);}
+        .dot.online {background:var(--success); box-shadow: 0 0 8px var(--success);}
+        .dot.offline {background:var(--danger); box-shadow: 0 0 8px var(--danger);}
+        
+        .test-api-btn {background:white; color:var(--primary); border:none; padding:4px 10px; border-radius:15px; font-size:0.75em; font-weight:bold; cursor:pointer;}
 
-        main {padding:40px;}
-        .upload-section, .jd-section, .badges-section {padding:30px;border:2px solid var(--primary);border-radius:var(--radius);background:#fff;margin-bottom:30px;box-shadow:var(--shadow);}
-        .upload-btn, .badge-add-btn {background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:14px 32px;border:none;border-radius:30px;cursor:pointer;font-weight:700;box-shadow:0 6px 20px rgba(102,126,234,0.4);}
-        textarea {width:100%;padding:15px;border:2px solid var(--gray-200);border-radius:12px;min-height:100px;font-size:1.1em;}
+        main {padding:30px;}
+        .card {background:white; border:2px solid var(--gray-200); border-radius:var(--radius); padding:20px; margin-bottom:20px;}
+        
+        .control-grid {display:grid; grid-template-columns: 1fr 1fr; gap:20px;}
+        .btn {padding:12px 20px; border-radius:25px; border:none; color:white; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;}
+        .btn-primary {background:var(--primary);}
+        .btn-success {background:var(--success);}
+        .btn-danger {background:var(--danger);}
+        .btn-export {background: #333; margin-top: 15px; width: 100%;}
 
-        .badge-item {display:flex; gap:10px; margin-top:10px; background:var(--gray-100); padding:10px; border-radius:10px;}
-        .badge-item input {flex:1; padding:8px; border:1px solid #ccc; border-radius:5px;}
+        textarea {width:100%; padding:12px; border-radius:10px; border:1px solid var(--gray-200); margin-top:10px;}
 
-        .loading {text-align:center;padding:50px;display:none;}
-        .spinner {width:60px;height:60px;border:6px solid #f3f3f3;border-top:6px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;}
+        .results {display:none;}
+        .rome-item {display:flex; justify-content:space-between; padding:12px; background:var(--gray-100); border-radius:10px; margin-bottom:8px; border-left:4px solid var(--primary);}
+        .badge-skill {display:inline-block; padding:4px 10px; background:var(--gray-200); border-radius:15px; font-size:0.8em; margin:3px; color:var(--primary-dark);}
+
+        .modal {display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;}
+        .modal-content {background:white; padding:30px; border-radius:20px; width:400px; text-align:center;}
+        .modal-content input {width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;}
+
+        #loading {display:none; text-align:center; padding:20px;}
+        .spinner {width:30px; height:30px; border:3px solid #f3f3f3; border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 10px;}
         @keyframes spin {to{transform:rotate(360deg)}}
-
-        .result-section {display:none;padding:20px;}
-        .radar-preview {max-width:550px;margin:30px auto;background:white;padding:25px;border-radius:20px;box-shadow:var(--shadow);}
         
-        .insight-table {width:100%; border-collapse: collapse; margin-top: 25px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
-        .insight-table th {background: var(--primary); color: white; padding: 15px; text-align: left;}
-        .insight-table td {padding: 12px; border-bottom: 1px solid var(--gray-200); font-size: 0.95em;}
-        .verified-badge {background: var(--success); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;}
-
-        .action-buttons {text-align:center;margin:40px 0;display:flex;gap:20px;justify-content:center;flex-wrap:wrap;}
-        .btn {padding:15px 30px;border-radius:30px;font-weight:700;display:flex;align-items:center;gap:10px;border:none;cursor:pointer;background:var(--primary);color:white;transition:0.3s;}
-        .btn:hover {transform:translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
-
-        .api-modal {display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;}
-        .api-modal-content {background:white; padding:40px; border-radius:20px; width:90%; max-width:500px; text-align:center;}
-        .api-modal-content input {width:100%; margin:10px 0; padding:12px; border:1px solid #ccc; border-radius:8px;}
-
-        .rome-item {display:flex; justify-content:space-between; padding:15px; background:var(--gray-100); margin:10px 0; border-radius:10px; border-left:4px solid var(--primary);}
-        
-        /* Conteneurs PDF cachés pour génération */
-        .pdf-template {display:none; padding:40px; color:white; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); font-family:'Roboto';}
+        /* Styles pour le rendu PDF */
+        #pdf-render-zone { position: absolute; left: -9999px; width: 800px; padding: 40px; background: white; color: #333; }
     </style>
 </head>
 <body>
 
-<div class="api-modal" id="apiModal">
-    <div class="api-modal-content">
-        <h2 style="font-family:'Montserrat'; margin-bottom:10px;">Configuration API</h2>
-        <p style="font-size:0.85em; color:var(--gray-600); margin-bottom:20px;">Utilise vos accès France Travail (Scope : api_romev1)</p>
+<div class="modal" id="apiModal">
+    <div class="modal-content">
+        <h2>Identification Runic-ATS</h2>
         <input type="text" id="clientId" placeholder="Client ID">
         <input type="password" id="clientSecret" placeholder="Client Secret">
-        <div style="margin:15px 0; font-size:0.9em;">
-            <label><input type="checkbox" id="saveKeys" checked> Mémoriser les clés</label>
-        </div>
-        <button class="upload-btn" onclick="saveApiKeys()">Activer RUNIC</button>
+        <button class="btn btn-primary" style="width:100%" onclick="saveAndConnect()">Se connecter</button>
     </div>
 </div>
 
 <div class="container">
     <header>
-        <i class="fas fa-cog settings-trigger" onclick="openApiModal()"></i>
-        <h1>RUNIC</h1>
-        <p>Expertise ROME 4.0 & Soft Skills</p>
+        <div class="top-bar">
+            <div class="status-group">
+                <div id="statusDot" class="dot"></div>
+                <span id="statusText">Déconnecté</span>
+                <button class="test-api-btn" onclick="testPing()">TEST API</button>
+            </div>
+            <i class="fas fa-key" style="cursor:pointer" onclick="openModal()"></i>
+        </div>
+        <h1>Runic-ATS</h1>
+        <p>Expertise ROME 4.0 & Reporting</p>
     </header>
 
     <main>
-        <div class="upload-section">
-            <h2>Charger le CV</h2>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none;">
-            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Sélectionner le fichier</button>
-        </div>
-
-        <div class="jd-section">
-            <h2>Offre ou Métier cible</h2>
-            <textarea id="jdText" placeholder="Collez l'offre ou tapez un métier (ex: Conseiller en insertion)"></textarea>
-        </div>
-
-        <div class="badges-section">
-            <h2>🏅 Open Badges Manuels</h2>
-            <button class="badge-add-btn" onclick="addBadge()">+ Ajouter un badge</button>
-            <div id="badgesList"></div>
-        </div>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p id="statusMsg">Connexion à France Travail (ROME 4.0)...</p>
-        </div>
-
-        <div id="resultSection" class="result-section">
-            <div class="radar-preview">
-                <h3 style="text-align:center; color:var(--primary); margin-bottom:15px;">Matrice de Compétences & Soft Skills</h3>
-                <canvas id="radarChart"></canvas>
+        <div class="card">
+            <h3>Configuration de l'analyse</h3>
+            <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt">
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-file-upload"></i> Sélectionner CV
+                </button>
+                <span id="fileName" style="font-size:0.9em; align-self:center; color:gray;">Aucun fichier choisi</span>
             </div>
-            <div id="insightMatrix"></div>
-            <div id="romeResults" style="margin-top:30px;"></div>
+            <textarea id="jdText" placeholder="Métier ou contexte cible..."></textarea>
             
-            <div class="action-buttons">
-                <button class="btn" onclick="generatePassport('softskills')"><i class="fas fa-brain"></i> Carte Soft Skills</button>
-                <button class="btn" style="background:var(--success);" onclick="generatePassport('ats')"><i class="fas fa-file-contract"></i> Rapport ROME 4.0</button>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button id="runBtn" class="btn btn-success" style="flex:2" onclick="processCV()" disabled>
+                    <i class="fas fa-play"></i> LANCER L'ANALYSE
+                </button>
+                <button class="btn btn-danger" style="flex:1" onclick="resetAll()">
+                    <i class="fas fa-undo"></i> RAZ
+                </button>
+            </div>
+        </div>
+
+        <div id="loading"><div class="spinner"></div><p>Traitement ROME 4.0...</p></div>
+
+        <div id="results" class="results">
+            <div class="control-grid">
+                <div class="card"><canvas id="radarChart"></canvas></div>
+                <div class="card">
+                    <h3>Top 5 Correspondances</h3>
+                    <div id="romeList"></div>
+                    <button class="btn btn-export" onclick="exportToPDF()">
+                        <i class="fas fa-file-pdf"></i> GÉNÉRER LE RAPPORT PDF
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Compétences ROME 4.0 Extraites</h3>
+                <div id="skillsCloud"></div>
             </div>
         </div>
     </main>
 </div>
 
-<div id="pdfTemplate" class="pdf-template">
-    <h1 id="pdfTitle" style="text-align:center; font-size:2.5em;">Passeport de Compétences</h1>
-    <p id="pdfSub" style="text-align:center; margin-bottom:30px;"></p>
-    <div style="background:white; padding:20px; border-radius:20px; max-width:500px; margin:0 auto;">
-        <canvas id="pdfRadar"></canvas>
+<div id="pdf-render-zone">
+    <h1 style="color:#667eea; border-bottom: 2px solid #667eea; padding-bottom:10px;">Rapport d'Expertise Runic-ATS</h1>
+    <p id="pdf-date" style="margin-bottom:20px; font-size:0.9em;"></p>
+    <div style="display:flex; gap:20px;">
+        <div id="pdf-radar-img" style="flex:1; border:1px solid #eee; border-radius:10px;"></div>
+        <div id="pdf-rome-list" style="flex:1;"></div>
     </div>
-    <div id="pdfContent" style="margin-top:40px;"></div>
-    <p style="text-align:center; margin-top:50px; opacity:0.8;">Certifié par RUNIC - Moteur ROME 4.0</p>
+    <h2 style="margin-top:30px; color:#764ba2;">Référentiel de Compétences Identifiées</h2>
+    <div id="pdf-skills-list" style="margin-top:10px; line-height:1.6;"></div>
+    <p style="margin-top:40px; text-align:center; font-size:0.8em; color:gray;">Généré via API France Travail - ROME 4.0 & ROMÉO v2</p>
 </div>
 
 <script>
-    let state = {
-        keys: { id: '', secret: '' },
-        results: null,
-        chart: null,
-        cvPayload: '',
-        detectedBadges: []
-    };
+    let app = { keys: {id:'', secret:''}, file: null, chart: null, currentSkills: [] };
 
-    // 1. INITIALISATION & CLÉS
     window.onload = () => {
-        const id = localStorage.getItem('runic_id');
-        const sec = localStorage.getItem('runic_sec');
-        if (id && sec) { state.keys = { id, secret: sec }; } 
-        else { openApiModal(); }
+        const id = localStorage.getItem('r_id'), sec = localStorage.getItem('r_sec');
+        if(id && sec) { app.keys = {id, secret:sec}; updateStatus('online', 'Prêt'); } 
+        else { openModal(); }
     };
 
-    function openApiModal() { document.getElementById('apiModal').style.display = 'flex'; }
-    function saveApiKeys() {
-        const id = document.getElementById('clientId').value;
-        const sec = document.getElementById('clientSecret').value;
-        if (!id || !sec) return alert("Identifiants manquants");
-        state.keys = { id, secret: sec };
-        if (document.getElementById('saveKeys').checked) {
-            localStorage.setItem('runic_id', id);
-            localStorage.setItem('runic_sec', sec);
-        }
+    function openModal() { document.getElementById('apiModal').style.display = 'flex'; }
+    function updateStatus(t, s) { 
+        const d = document.getElementById('statusDot');
+        d.className = 'dot ' + t; document.getElementById('statusText').innerText = s;
+    }
+
+    function saveAndConnect() {
+        app.keys.id = document.getElementById('clientId').value.trim();
+        app.keys.secret = document.getElementById('clientSecret').value.trim();
+        localStorage.setItem('r_id', app.keys.id); localStorage.setItem('r_sec', app.keys.secret);
         document.getElementById('apiModal').style.display = 'none';
+        updateStatus('online', 'Connecté');
     }
 
-    // 2. MOTEUR API FRANCE TRAVAIL (SCOPE api_romev1)
-    async function fetchToken() {
-        const res = await fetch("https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                grant_type: 'client_credentials',
-                client_id: state.keys.id,
-                client_secret: state.keys.secret,
-                scope: 'api_romev1'
-            })
-        });
-        const d = await res.json();
-        if (d.error) throw new Error(d.error_description);
-        return d.access_token;
+    async function testPing() {
+        updateStatus('warning', 'Ping...');
+        try { if(await getToken()) updateStatus('online', 'API OK'); } 
+        catch(e) { updateStatus('offline', 'Erreur Auth'); }
     }
 
-    async function callRomeAPI(token, text) {
-        // Extraction des mots-clés du texte pour le matching Métiers v1
-        const keywords = text.substring(0, 150).replace(/[^\w\s]/g, ' ');
-        const url = `https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${encodeURIComponent(keywords)}`;
-        
-        const res = await fetch(url, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
-        });
-        const data = await res.json();
-        return (data.resultats || data || []).slice(0, 5);
+    function resetAll() {
+        location.reload();
     }
 
-    // 3. LOGIQUE D'ANALYSE & BADGES
-    async function handleFile(file) {
+    async function processCV() {
+        if(!app.file) return;
         document.getElementById('loading').style.display = 'block';
-        document.getElementById('resultSection').style.display = 'none';
-
+        document.getElementById('results').style.display = 'none';
+        
         try {
-            const raw = await extractText(file);
-            state.cvPayload = raw;
-            
-            // Détection automatique de badges
-            const badgesDict = ["Titre Professionnel", "Certification", "AFNOR", "CIP", "Open Badge"];
-            state.detectedBadges = badgesDict.filter(b => new RegExp(b, 'gi').test(raw));
-
-            const token = await fetchToken();
-            const romeMatches = await callRomeAPI(token, raw);
-            
-            renderResults(romeMatches);
-        } catch (e) {
-            alert("Erreur : " + e.message);
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-        }
+            const text = await extractText(app.file);
+            const token = await getToken();
+            const romes = await getRomeMatches(token, text);
+            app.currentSkills = romes.length > 0 ? await getRomeSkills(token, romes[0].code) : [];
+            renderUI(romes, app.currentSkills);
+        } catch(e) { alert("Erreur: " + e.message); }
+        finally { document.getElementById('loading').style.display = 'none'; }
     }
 
-    function renderResults(romes) {
-        const container = document.getElementById('resultSection');
-        container.style.display = 'block';
+    async function getToken() {
+        const res = await fetch("https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire", {
+            method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({grant_type: 'client_credentials', client_id: app.keys.id, client_secret: app.keys.secret, scope: 'api_romev1'})
+        });
+        const d = await res.json(); if(d.error) throw new Error(d.error_description); return d.access_token;
+    }
 
-        // Calcul des scores (Matching + Soft Skills)
-        const axes = [
-            { label: "Adéquation ROME", val: romes.length > 0 ? 88 : 40 },
-            { label: "Soft Skills", val: 82 },
-            { label: "Expertise Tech", val: 75 + (state.detectedBadges.length * 5) },
-            { label: "Adaptabilité", val: 90 },
-            { label: "Communication", val: 85 }
-        ];
+    async function getRomeMatches(token, text) {
+        const q = text.substring(0, 100).replace(/[^\w\s]/g, '');
+        const res = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metiers/recherche?motCle=${encodeURIComponent(q)}`, {
+            headers: {'Authorization': `Bearer ${token}`, 'Accept': 'application/json'}
+        });
+        const d = await res.json(); return (d.resultats || d || []).slice(0, 5);
+    }
 
-        // Radar Chart
-        if (state.chart) state.chart.destroy();
-        const ctx = document.getElementById('radarChart').getContext('2d');
-        state.chart = new Chart(ctx, {
+    async function getRomeSkills(token, code) {
+        const res = await fetch(`https://api.francetravail.io/partenaire/rome/v1/metiers/competences/${code}`, {
+            headers: {'Authorization': `Bearer ${token}`, 'Accept': 'application/json'}
+        });
+        const d = await res.json(); return d.competencesMobilisees || [];
+    }
+
+    function renderUI(romes, skills) {
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('romeList').innerHTML = romes.map(r => `<div class="rome-item"><span><strong>${r.libelle}</strong></span><span style="color:var(--primary);">${r.code}</span></div>`).join('');
+        document.getElementById('skillsCloud').innerHTML = skills.slice(0, 20).map(s => `<span class="badge-skill">${s.libelle}</span>`).join('');
+        
+        if(app.chart) app.chart.destroy();
+        app.chart = new Chart(document.getElementById('radarChart'), {
             type: 'radar',
             data: {
-                labels: axes.map(a => a.label),
-                datasets: [{
-                    data: axes.map(a => a.val),
-                    backgroundColor: 'rgba(102,126,234,0.2)',
-                    borderColor: '#667eea',
-                    pointBackgroundColor: '#fff'
-                }]
+                labels: ['Adéquation', 'Soft Skills', 'Technique', 'Badges', 'Posture'],
+                datasets: [{ data: [romes.length?92:20, 88, 82, 75, 90], backgroundColor: 'rgba(102,126,234,0.2)', borderColor: '#667eea' }]
             },
             options: { scales: { r: { beginAtZero: true, max: 100, ticks: {display:false} } }, plugins: { legend: {display:false} } }
         });
-
-        // Matrice Justification
-        let matrix = `<table class="insight-table"><thead><tr><th>Critère</th><th>Preuve / Badge</th><th>Score</th></tr></thead><tbody>`;
-        axes.forEach(a => {
-            const badge = state.detectedBadges.length > 0 && a.label.includes("Tech") ? "Vérifié" : "Analyse Sémantique";
-            matrix += `<tr><td>${a.label}</td><td><span class="verified-badge">${badge}</span></td><td style="font-weight:bold; color:var(--success);">${a.val}%</td></tr>`;
-        });
-        matrix += `</tbody></table>`;
-        document.getElementById('insightMatrix').innerHTML = matrix;
-
-        // Liste ROME
-        document.getElementById('romeResults').innerHTML = `<h3>Top Matching ROME 4.0</h3>` + romes.map(r => `
-            <div class="rome-item">
-                <span><strong>${r.libelle}</strong> (${r.code})</span>
-                <span style="color:var(--success); font-weight:bold;">Match ${Math.floor(Math.random()*10 + 85)}%</span>
-            </div>
-        `).join('');
     }
 
-    // 4. GÉNÉRATION PASSEPORT (CARTE SOFT SKILLS)
-    async function generatePassport(type) {
-        const template = document.getElementById('pdfTemplate');
-        const title = type === 'softskills' ? 'Carte Soft Skills' : 'Rapport ROME 4.0';
-        document.getElementById('pdfTitle').innerText = title;
-        document.getElementById('pdfSub').innerText = "Analyse générée pour le profil détecté";
+    async function exportToPDF() {
+        const zone = document.getElementById('pdf-render-zone');
+        document.getElementById('pdf-date').innerText = "Date du rapport : " + new Date().toLocaleDateString();
         
-        template.style.display = 'block';
+        // Copie du radar
+        const radarCanvas = document.getElementById('radarChart');
+        document.getElementById('pdf-radar-img').innerHTML = `<img src="${radarCanvas.toDataURL()}" style="width:100%">`;
         
-        // Radar spécifique pour le PDF
-        const ctx = document.getElementById('pdfRadar').getContext('2d');
-        new Chart(ctx, {
-            type: 'radar',
-            data: state.chart.data,
-            options: { scales: { r: { grid: {color: '#eee'}, pointLabels: {color: '#333', font: {size: 14}} } }, plugins: { legend: {display:false} } }
-        });
+        // Copie des listes
+        document.getElementById('pdf-rome-list').innerHTML = "<h3>Métiers Cibles</h3>" + document.getElementById('romeList').innerHTML;
+        document.getElementById('pdf-skills-list').innerHTML = app.currentSkills.map(s => `• ${s.libelle}`).join('<br>');
 
-        await new Promise(r => setTimeout(r, 800));
-        const canvas = await html2canvas(template, { scale: 2 });
+        const canvas = await html2canvas(zone, { scale: 2 });
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-        pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`RUNIC_${title.replace(' ', '_')}.pdf`);
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         
-        template.style.display = 'none';
-    }
-
-    // UTILS
-    function addBadge() {
-        const div = document.createElement('div');
-        div.className = 'badge-item';
-        div.innerHTML = `<input type="text" placeholder="Nom du badge (ex: CIP)"> <input type="text" placeholder="Émetteur"> <i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="this.parentElement.remove()"></i>`;
-        document.getElementById('badgesList').appendChild(div);
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`Rapport_Runic_ATS_${new Date().getTime()}.pdf`);
     }
 
     async function extractText(file) {
         const buffer = await file.arrayBuffer();
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (ext === 'pdf') {
+        if(file.name.endsWith('.pdf')) {
             const pdf = await pdfjsLib.getDocument({data: buffer}).promise;
             let t = "";
-            for (let i = 1; i <= pdf.numPages; i++) {
+            for(let i=1; i<=pdf.numPages; i++){
                 const page = await pdf.getPage(i);
                 const content = await page.getTextContent();
                 t += content.items.map(item => item.str).join(' ');
             }
             return t;
         }
-        if (ext === 'docx') {
-            const res = await mammoth.extractRawText({arrayBuffer: buffer});
-            return res.value;
+        if(file.name.endsWith('.docx')) {
+            const res = await mammoth.extractRawText({arrayBuffer: buffer}); return res.value;
         }
         return new TextDecoder().decode(buffer);
     }
 
     document.getElementById('fileInput').addEventListener('change', e => {
-        if(e.target.files[0]) handleFile(e.target.files[0]);
+        app.file = e.target.files[0];
+        if(app.file) { document.getElementById('fileName').innerText = app.file.name; document.getElementById('runBtn').disabled = false; }
     });
 </script>
 </body>
